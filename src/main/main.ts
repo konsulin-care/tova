@@ -172,6 +172,10 @@ ipcMain.handle('get-high-precision-time', async () => {
   return process.hrtime.bigint().toString();
 });
 
+ipcMain.handle('get-event-timestamp', async () => {
+  return process.hrtime.bigint().toString();
+});
+
 ipcMain.handle('query-database', async (_event, sql: string, params?: any[]) => {
   if (!db) {
     throw new Error('Database not initialized');

@@ -5,6 +5,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('electronAPI', {
   // Timing API
   getHighPrecisionTime: () => ipcRenderer.invoke('get-high-precision-time'),
+  getEventTimestamp: () => ipcRenderer.invoke('get-event-timestamp'),
   
   // Database API
   queryDatabase: (sql: string, params?: any[]) => 

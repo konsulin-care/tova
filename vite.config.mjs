@@ -6,8 +6,10 @@ import { dirname, resolve } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+import tailwindcss from '@tailwindcss/vite';
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   root: 'src/renderer',
   build: {
     outDir: '../../dist/renderer',
