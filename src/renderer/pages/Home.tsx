@@ -6,13 +6,14 @@ export default function Home() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-4 text-gray-900">
-        TOVA Clinical Assessment
+        FOCUS Assessment
       </h1>
       <p className="text-gray-600 mb-6 text-lg">
-        The Test of Variables of Attention (T.O.V.A.) is a visual assessment
-        tool used to evaluate attention and inhibitory control. This computer-based
-        test measures four key variables: response time, response time variability,
-        commission errors, and omission errors.
+        F.O.C.U.S. (Following Ongoing Cues Under Structure) is a computer-based
+        visual attention task designed to examine how users track and respond to
+        ongoing visual cues presented at a fixed pace. This task captures four
+        key variables: response time, response time variability, commission
+        errors, and omission errors.
       </p>
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
         <h2 className="text-xl font-semibold mb-3 text-blue-900">Test Duration</h2>

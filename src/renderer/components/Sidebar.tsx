@@ -76,9 +76,9 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-4 border-b border-gray-700 flex items-center justify-center">
         {isSidebarCollapsed ? (
-          <span className="text-2xl font-bold text-blue-400">T</span>
+          <span className="text-2xl font-bold text-blue-400">F</span>
         ) : (
-          <span className="text-xl font-bold">TOVA Clinical</span>
+          <span className="text-xl font-bold">F.O.C.U.S. Clinical</span>
         )}
       </div>
 

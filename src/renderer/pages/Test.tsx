@@ -7,13 +7,15 @@ export default function Test() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-gray-900">
-        T.O.V.A. Test
+        F.O.C.U.S. Test
       </h1>
       
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
         <p className="text-yellow-800 text-lg mb-4">
-          The Test of Variables of Attention (T.O.V.A.) is a visual assessment
-          that measures attention and inhibitory control.
+          F.O.C.U.S. (Following Ongoing Cues Under Structure) is a visual
+          attention task that measures how consistently a user responds to
+          structured cues and how effectively they withhold responses when
+          required.
         </p>
         <ul className="list-disc list-inside mt-4 text-yellow-800 space-y-2">
           <li>Duration: approximately 21.6 minutes</li>

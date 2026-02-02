@@ -52,7 +52,7 @@ export default function Settings() {
             Test Configuration
           </h2>
           <p className="text-gray-600 mb-4">
-            Configure test parameters for the TOVA assessment.
+            Configure test parameters for the F.O.C.U.S. assessment.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

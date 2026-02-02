@@ -6,7 +6,7 @@ export default function About() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-gray-900">
-        About TOVA Clinical
+        About F.O.C.U.S. Clinical
       </h1>
 
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
@@ -22,10 +22,10 @@ export default function About() {
 
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
         <h2 className="text-xl font-semibold mb-3 text-gray-800">
-          About the T.O.V.A. Test
+          About the F.O.C.U.S. Test
         </h2>
         <p className="text-gray-600 mb-4">
-          The Test of Variables of Attention (T.O.V.A.) is a computerized visual
+          The Following Ongoing Cues Under Structure (F.O.C.U.S.) is a computerized visual
           continuous performance test used to assess attention and inhibitory control.
           It is widely used in the diagnosis and monitoring of attention disorders
           such as ADHD.
@@ -55,7 +55,7 @@ export default function About() {
           Support & Contact
         </h2>
         <p className="text-gray-600 mb-2">
-          For technical support or questions about the TOVA Clinical assessment,
+          For technical support or questions about the F.O.C.U.S. Clinical assessment,
           please contact your healthcare provider or system administrator.
         </p>
         <p className="text-gray-600">

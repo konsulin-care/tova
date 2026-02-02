@@ -438,7 +438,7 @@ ipcMain.handle('start-test', async () => {
     return false;
   }
   
-  console.log('Starting TOVA test sequence...');
+  console.log('Starting F.O.C.U.S. test sequence...');
   
   // Reset test state
   testRunning = true;
@@ -548,7 +548,7 @@ ipcMain.handle('stop-test', async () => {
     return false;
   }
   
-  console.log('Stopping TOVA test sequence...');
+  console.log('Stopping F.O.C.U.S. test sequence...');
   testRunning = false;
   completeTest();
   
