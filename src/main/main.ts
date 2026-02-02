@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, Menu } from 'electron';
 import * as path from 'path';
 import Database from 'better-sqlite3';
 
@@ -184,8 +184,9 @@ function createWindow() {
   });
 
   // Load the app
+  const devServerUrl = process.env.VITE_DEV_SERVER_URL || 'http://localhost:5173';
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL(devServerUrl);
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
@@ -194,6 +195,7 @@ function createWindow() {
 
 // App lifecycle
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   initDatabase();
   createWindow();
 

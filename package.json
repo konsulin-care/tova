@@ -30,7 +30,7 @@
     "vitest": "^4.0.18"
   },
   "scripts": {
-    "dev": "NODE_ENV=development sh -c 'vite & electron .'",
+    "dev": "vite & sleep 3 && electron .",
     "build": "tsc && vite build",
     "build:main": "tsc",
     "build:renderer": "vite build",
