@@ -125,6 +125,52 @@ function initDatabase() {
   }
 }
 
+// Safe query whitelist - maps command identifiers to predefined SQL queries
+type DatabaseQueryCommand = 
+  | 'get-pending-uploads'
+  | 'get-test-result'
+  | 'delete-test-result'
+  | 'get-upload-count'
+  | 'get-all-test-results'
+  | 'insert-test-result'
+  | 'update-test-result';
+
+interface QueryWhitelistEntry {
+  sql: string;
+  paramCount: number;
+}
+
+const queryWhitelist: Record<DatabaseQueryCommand, QueryWhitelistEntry> = {
+  'get-pending-uploads': {
+    sql: 'SELECT * FROM test_results WHERE upload_status = ?',
+    paramCount: 1,
+  },
+  'get-test-result': {
+    sql: 'SELECT * FROM test_results WHERE id = ?',
+    paramCount: 1,
+  },
+  'delete-test-result': {
+    sql: 'DELETE FROM test_results WHERE id = ?',
+    paramCount: 1,
+  },
+  'get-upload-count': {
+    sql: 'SELECT COUNT(*) as count FROM test_results WHERE upload_status = ?',
+    paramCount: 1,
+  },
+  'get-all-test-results': {
+    sql: 'SELECT * FROM test_results',
+    paramCount: 0,
+  },
+  'insert-test-result': {
+    sql: 'INSERT INTO test_results (test_data, email, upload_status, created_at) VALUES (?, ?, ?, ?)',
+    paramCount: 4,
+  },
+  'update-test-result': {
+    sql: 'UPDATE test_results SET upload_status = ? WHERE id = ?',
+    paramCount: 2,
+  },
+};
+
 // Create main window
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -176,13 +222,27 @@ ipcMain.handle('get-event-timestamp', async () => {
   return process.hrtime.bigint().toString();
 });
 
-ipcMain.handle('query-database', async (_event, sql: string, params?: any[]) => {
+// Safe query handler - replaces vulnerable query-database handler
+ipcMain.handle('query-database', async (_event: any, command: DatabaseQueryCommand, params?: any[]) => {
   if (!db) {
     throw new Error('Database not initialized');
   }
+
+  // Validate command is in whitelist
+  if (!(command in queryWhitelist)) {
+    throw new Error(`Invalid database command: ${command}`);
+  }
+
+  const queryEntry = queryWhitelist[command];
   
+  // Validate parameter count
+  const paramCount = params ? params.length : 0;
+  if (paramCount !== queryEntry.paramCount) {
+    throw new Error(`Command '${command}' expects ${queryEntry.paramCount} parameters, got ${paramCount}`);
+  }
+
   try {
-    const stmt = db.prepare(sql);
+    const stmt = db.prepare(queryEntry.sql);
     const result = stmt.all(...(params || []));
     return result;
   } catch (error) {
