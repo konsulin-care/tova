@@ -1,0 +1,79 @@
+{
+  "name": "tova",
+  "version": "1.0.0",
+  "main": "dist/main/main.js",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "better-sqlite3": "^12.6.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.0",
+    "zustand": "^4.4.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "electron": "^40.1.0",
+    "electron-builder": "^26.7.0",
+    "eslint": "^9.39.2",
+    "prettier": "^3.1.0",
+    "tailwindcss": "^4.1.18",
+    "ts-node": "^10.9.2",
+    "vite": "^5.4.21",
+    "vitest": "^4.0.18"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development sh -c 'vite & electron .'",
+    "build": "tsc && vite build",
+    "build:main": "tsc",
+    "build:renderer": "vite build",
+    "electron-rebuild": "electron-rebuild",
+    "package": "npm run build && electron-builder",
+    "validate-timing": "ts-node src/validate-timing.ts"
+  },
+  "build": {
+    "appId": "com.tova.clinical",
+    "productName": "TOVA Clinical",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/konsulin-care/tova.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/konsulin-care/tova/issues"
+  },
+  "homepage": "https://github.com/konsulin-care/tova#readme",
+  "description": ""
+}
