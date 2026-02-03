@@ -50,22 +50,14 @@ export function determineTrialOutcome(
   if (stimulusType === 'target') {
     if (hadResponse && responseCorrect) {
       return 'hit';
-    } else if (!hadResponse) {
-      return 'omission';
-    } else {
-      // Response to target but incorrect (shouldn't happen with current logic)
-      return 'omission';
     }
+    return 'omission';
   } else {
     // Non-target stimulus
     if (!hadResponse) {
       return 'correct-rejection';
-    } else if (!responseCorrect) {
-      return 'commission';
-    } else {
-      // Response to non-target but marked correct (shouldn't happen)
-      return 'commission';
     }
+    return 'commission';
   }
 }
 
