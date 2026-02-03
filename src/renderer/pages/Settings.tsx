@@ -19,6 +19,9 @@ export default function Settings() {
   const handleSave = async () => {
     try {
       await window.electronAPI.saveTestConfig(config);
+      // Refetch from database to ensure UI matches persisted state
+      const updatedConfig = await window.electronAPI.getTestConfig();
+      setConfig(updatedConfig);
       setStatus('Settings saved successfully');
       setTimeout(() => setStatus(''), 3000);
     } catch {

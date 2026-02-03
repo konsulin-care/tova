@@ -783,7 +783,7 @@ ipcMain.handle('start-test', async () => {
 });
 
 /**
- * Main stimulus sequence runner using precise timing
+ * Main stimulus sequence runner using precise timing with drift correction
  */
 function runStimulusSequence() {
   const config = getTestConfig();
@@ -797,20 +797,31 @@ function runStimulusSequence() {
   if (currentTrialIndex === 0) {
     emitStimulusChange(-1, 'target', 'buffer-start');
     
-    // Schedule first stimulus after buffer period
+    // Schedule first stimulus after buffer period with drift correction
+    const bufferEndTime = testStartTimeNs + BigInt(config.bufferMs) * 1_000_000n;
+    const now = process.hrtime.bigint();
+    const delayMs = Math.max(0, Number(bufferEndTime - now) / 1_000_000);
+    
     setTimeout(() => {
       if (!testRunning) return;
       presentStimulus();
-    }, config.bufferMs);
+    }, delayMs);
     return;
   }
   
-  // For subsequent trials, present stimulus immediately
-  presentStimulus();
+  // For subsequent trials, use drift-corrected scheduling with absolute timestamps
+  const trialStartTime = testStartTimeNs + BigInt(currentTrialIndex * (config.stimulusDurationMs + config.interstimulusIntervalMs)) * 1_000_000n;
+  const now = process.hrtime.bigint();
+  const delayMs = Math.max(0, Number(trialStartTime - now) / 1_000_000);
+  
+  setTimeout(() => {
+    if (!testRunning) return;
+    presentStimulus();
+  }, delayMs);
 }
 
 /**
- * Present a single stimulus (called after buffer period or ISI)
+ * Present a single stimulus with drift-corrected timing (called after buffer period or ISI)
  */
 function presentStimulus() {
   const config = getTestConfig();
@@ -826,31 +837,36 @@ function presentStimulus() {
   const expectedResponse = isTarget; // Target requires response, non-target requires no response
   
   // Record stimulus onset
-  const onsetTimestampNs = process.hrtime.bigint();
   emitStimulusChange(currentTrialIndex, currentStimulusType, 'stimulus-onset');
   
   // Store pending response for this trial
   pendingResponses.push({
     trialIndex: currentTrialIndex,
     stimulusType: currentStimulusType,
-    onsetTimestampNs,
+    onsetTimestampNs: process.hrtime.bigint(),
     expectedResponse,
   });
   
-  // Schedule stimulus offset after configured duration
+  // Calculate absolute timing targets using drift-corrected scheduling
+  const now = Number(process.hrtime.bigint() - testStartTimeNs) / 1_000_000;
+  const trialStartTime = currentTrialIndex * (config.stimulusDurationMs + config.interstimulusIntervalMs);
+  const stimulusEndTime = trialStartTime + config.stimulusDurationMs;
+  const nextTrialStartTime = stimulusEndTime + config.interstimulusIntervalMs;
+  
+  const offsetDelay = Math.max(0, stimulusEndTime - now);
   setTimeout(() => {
     if (!testRunning) return;
     
+    const currentNow = Number(process.hrtime.bigint() - testStartTimeNs) / 1_000_000;
     emitStimulusChange(currentTrialIndex, currentStimulusType, 'stimulus-offset');
     
-    // Schedule next trial after ISI
+    const remainingDelay = Math.max(0, nextTrialStartTime - currentNow);
     setTimeout(() => {
       if (!testRunning) return;
-      
       currentTrialIndex++;
       runStimulusSequence();
-    }, config.interstimulusIntervalMs);
-  }, config.stimulusDurationMs);
+    }, remainingDelay);
+  }, offsetDelay);
 }
 
 /**
