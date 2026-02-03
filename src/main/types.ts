@@ -79,6 +79,12 @@ export interface TestEvent {
   eventType: TestEventType;
   /** Whether the response was correct (only for response events) */
   responseCorrect?: boolean;
+  /** Time from stimulus onset to response in milliseconds (for response events) */
+  responseTimeMs?: number;
+  /** Number of responses this trial (for response events) */
+  responseCount?: number;
+  /** True if response within 150ms of onset (for response events) */
+  isAnticipatory?: boolean;
 }
 
 /**

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigation } from './store';
 import { TestEvent, StimulusType, TestConfig, TestCompleteResult } from './types/electronAPI';
+import { TrialResult, TestMetrics } from './types/trial';
+import { processTestEvents, calculateTestMetrics } from './utils/trial-metrics';
 import { EmailCaptureForm } from './components/EmailCaptureForm';
 
 type TestPhase = 'countdown' | 'buffer' | 'running' | 'completed' | 'email-capture';
@@ -24,6 +26,8 @@ function TestScreen() {
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [testDataJson, setTestDataJson] = useState<string>('');
   const [hasRespondedToCurrentTrial, setHasRespondedToCurrentTrial] = useState(false);
+  const [trialResults, setTrialResults] = useState<TrialResult[]>([]);
+  const [testMetrics, setTestMetrics] = useState<TestMetrics | null>(null);
   const { endTest } = useNavigation();
 
   // Fetch test config on mount
@@ -88,6 +92,14 @@ function TestScreen() {
       setTestEvents(data.events);
       setTestResponses(data.events.filter(e => e.eventType === 'response'));
       setElapsedTimeMs(Number(data.elapsedTimeNs) / 1_000_000);
+      
+      // Process test events into trial results
+      const results = processTestEvents(data.events, testConfig);
+      setTrialResults(results);
+      
+      // Calculate comprehensive test metrics
+      const metrics = calculateTestMetrics(results);
+      setTestMetrics(metrics);
       
       // Store test data as JSON for email capture
       setTestDataJson(JSON.stringify(data));
@@ -256,13 +268,69 @@ function TestScreen() {
         </div>
       )}
 
-      {/* Test completed summary */}
-      {phase === 'completed' && !showEmailCapture && (
-        <div className="mt-6 text-center font-mono text-lg text-white">
-          <div>Total responses recorded: {testResponses.length}</div>
-          <div className="mt-2">The test was completed in {Math.floor(elapsedTimeMs / 60000)}m {String(Math.floor((elapsedTimeMs % 60000) / 1000)).padStart(2, '0')}s</div>
-          <div className="mt-4 text-white">
-            {testResponses.length > 0 ? 'Data ready for submission' : 'No data recorded'}
+      {/* Test completed summary with metrics */}
+      {phase === 'completed' && !showEmailCapture && testMetrics && (
+        <div className="mt-6 text-center font-mono text-lg text-white max-w-2xl">
+          <div className="text-2xl mb-4">Test Completed</div>
+          
+          <div className="grid grid-cols-2 gap-4 text-left bg-gray-800 p-4 rounded-lg">
+            <div>
+              <div className="text-gray-400 text-sm">Hits</div>
+              <div className="text-xl">{testMetrics.hits}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">Omissions</div>
+              <div className="text-xl">{testMetrics.omissions}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">Commissions</div>
+              <div className="text-xl">{testMetrics.commissions}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">Correct Rejections</div>
+              <div className="text-xl">{testMetrics.correctRejections}</div>
+            </div>
+          </div>
+          
+          <div className="mt-4 grid grid-cols-2 gap-4 text-left bg-gray-800 p-4 rounded-lg">
+            <div>
+              <div className="text-gray-400 text-sm">Mean Response Time</div>
+              <div className="text-xl">{testMetrics.meanResponseTimeMs.toFixed(1)}ms</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">Response Time SD</div>
+              <div className="text-xl">{testMetrics.stdResponseTimeMs.toFixed(1)}ms</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">Anticipatory Responses</div>
+              <div className="text-xl">{testMetrics.anticipatoryResponses}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">Multiple Responses</div>
+              <div className="text-xl">{testMetrics.multipleResponses}</div>
+            </div>
+          </div>
+          
+          <div className="mt-4 grid grid-cols-3 gap-4 text-left bg-gray-800 p-4 rounded-lg">
+            <div>
+              <div className="text-gray-400 text-sm">Attention Score</div>
+              <div className="text-xl">{testMetrics.attentionScore.toFixed(1)}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">Impulse Control</div>
+              <div className="text-xl">{testMetrics.impulseControlScore.toFixed(1)}</div>
+            </div>
+            <div>
+              <div className="text-gray-400 text-sm">Consistency</div>
+              <div className="text-xl">{testMetrics.consistencyScore.toFixed(1)}</div>
+            </div>
+          </div>
+          
+          <div className="mt-4 text-gray-400">
+            Total responses: {testMetrics.hits + testMetrics.commissions} / {testMetrics.totalTrials} trials
+          </div>
+          <div className="text-gray-400">
+            Duration: {Math.floor(elapsedTimeMs / 60000)}m {String(Math.floor((elapsedTimeMs % 60000) / 1000)).padStart(2, '0')}s
           </div>
         </div>
       )}

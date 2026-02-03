@@ -59,6 +59,11 @@ let currentStimulusType: StimulusType = 'target';
  */
 let mainWindow: BrowserWindow | null = null;
 
+/**
+ * Response count per trial (for detecting multiple responses).
+ */
+const responseCountPerTrial: Map<number, number> = new Map();
+
 // ===========================================
 // Window Reference
 // ===========================================
@@ -248,6 +253,7 @@ export function startTest(): boolean {
   currentTrialIndex = 0;
   currentStimulusType = 'target';
   testStartTimeNs = getHighPrecisionTime();
+  responseCountPerTrial.clear();
   
   // Start the stimulus sequence
   runStimulusSequence();
@@ -298,6 +304,9 @@ export function recordResponse(responded: boolean): void {
       timestampNs: responseTimestampNs.toString(),
       eventType: 'response',
       responseCorrect: false,
+      responseTimeMs: 0,
+      responseCount: 1,
+      isAnticipatory: false,
     };
     testEvents.push(event);
     return;
@@ -305,19 +314,32 @@ export function recordResponse(responded: boolean): void {
   
   const pending = pendingResponses[pendingIndex];
   
+  // Calculate response time from stimulus onset
+  const responseTimeMs = Number(responseTimestampNs - pending.onsetTimestampNs) / 1_000_000;
+  
+  // Determine if response is anticipatory (<150ms from onset)
+  const isAnticipatory = responseTimeMs < 150;
+  
+  // Increment response count for this trial
+  const currentCount = responseCountPerTrial.get(pending.trialIndex) || 0;
+  responseCountPerTrial.set(pending.trialIndex, currentCount + 1);
+  
   // Determine if response was correct
   const isCorrect = pending.expectedResponse === responded;
   
   // Remove from pending responses
   pendingResponses.splice(pendingIndex, 1);
   
-  // Record the response event
+  // Record the response event with timing data
   const event: TestEvent = {
     trialIndex: pending.trialIndex,
     stimulusType: pending.stimulusType,
     timestampNs: responseTimestampNs.toString(),
     eventType: 'response',
     responseCorrect: isCorrect,
+    responseTimeMs,
+    responseCount: currentCount + 1,
+    isAnticipatory,
   };
   
   testEvents.push(event);
