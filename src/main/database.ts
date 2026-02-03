@@ -1,5 +1,5 @@
 /**
- * F.O.C.U.S. Clinical Attention Test - Database Module
+ * F.O.C.U.S. Assessment - Database Module
  * 
  * Database initialization with SQLCipher encryption and query whitelist.
  * Uses better-sqlite3 for local data persistence.
@@ -14,7 +14,6 @@ import {
 } from './types';
 import { 
   getOrCreateEncryptionKey, 
-  isDatabaseEncrypted, 
   migrateToEncrypted 
 } from './encryption';
 
@@ -98,18 +97,33 @@ export const queryWhitelist: Record<DatabaseQueryCommand, QueryWhitelistEntry> =
  * Handles migration from unencrypted to encrypted format.
  */
 export function initDatabase(): void {
-  const dbPath = path.join(app.getPath('userData'), 'tova.db');
+  const dbPath = path.join(app.getPath('userData'), 'focus.db');
   const fs = require('fs');
   
   // Get or create encryption key
   const encryptionKey = getOrCreateEncryptionKey();
   
+  const dbExists = fs.existsSync(dbPath);
+  
+  // Check if we need to migrate from unencrypted to encrypted
+  // Only migrate if: DB exists AND we can open it without key (meaning it's unencrypted)
+  let needsMigration = false;
+  if (dbExists) {
+    try {
+      // Try to open database WITHOUT key to see if it's unencrypted
+      const testDb = new Database(dbPath);
+      testDb.close();
+      
+      // Successful open/read means DB is unencrypted - trigger migration
+      needsMigration = true;
+      console.log('[DB] Migrating unencrypted database to encrypted format');
+    } catch {
+      // Could not read without key - it's already encrypted
+    }
+  }
+  
   try {
-    // Check if database exists and is encrypted
-    const exists = fs.existsSync(dbPath);
-    const isEncrypted = exists && isDatabaseEncrypted(dbPath);
-    
-    if (exists && !isEncrypted) {
+    if (needsMigration) {
       // Migrate unencrypted database to encrypted format
       const tempDb = new Database(dbPath);
       migrateToEncrypted(tempDb, encryptionKey);
@@ -126,10 +140,9 @@ export function initDatabase(): void {
     // Verify encryption is working by attempting a simple query
     try {
       db.prepare('SELECT 1').get();
-      console.log('Database encryption verified successfully');
     } catch (verifyError) {
-      console.error('Failed to verify database encryption:', verifyError);
-      throw new Error('Database encryption verification failed');
+      console.error('[DB] Encryption verification failed:', verifyError);
+      throw new Error('Database encryption verification failed - wrong key or corrupted database');
     }
     
     // Create test_results table with GDPR-compliant schema
@@ -162,9 +175,18 @@ export function initDatabase(): void {
       )
     `);
     
-    console.log('Database initialized successfully with SQLCipher encryption (GDPR-compliant)');
+    // Seed default configuration (only if not already seeded)
+    db.exec(`
+      INSERT OR IGNORE INTO test_config (key, value) VALUES
+        ('stimulusDurationMs', '100'),
+        ('interstimulusIntervalMs', '2000'),
+        ('totalTrials', '648'),
+        ('bufferMs', '500')
+    `);
+    
+    console.log('[DB] Database initialized with SQLCipher encryption');
   } catch (error) {
-    console.error('Failed to initialize database:', error);
+    console.error('[DB] Failed to initialize database:', error);
   }
 }
 

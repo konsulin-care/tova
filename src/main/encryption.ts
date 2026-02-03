@@ -1,5 +1,5 @@
 /**
- * F.O.C.U.S. Clinical Attention Test - Encryption Key Management
+ * F.O.C.U.S. Assessment - Encryption Key Management
  * 
  * Database encryption using SQLCipher with secure key management.
  * Keys are stored in userData directory with restricted permissions.
@@ -37,7 +37,7 @@ export function generateEncryptionKey(): string {
  */
 export function getOrCreateEncryptionKey(): string {
   const fs = require('fs');
-  const keyPath = path.join(app.getPath('userData'), '.tova_db_key');
+  const keyPath = path.join(app.getPath('userData'), '.focus_db_key');
   
   // Check if key already exists
   if (fs.existsSync(keyPath)) {
@@ -45,13 +45,13 @@ export function getOrCreateEncryptionKey(): string {
       const existingKey = fs.readFileSync(keyPath, 'utf8').trim();
       // Validate key format (64 hex characters = 256 bits)
       if (existingKey.length === 64 && /^[a-fA-F0-9]+$/.test(existingKey)) {
-        console.log('Existing encryption key found and validated');
+        console.log('[ENC] Using existing encryption key');
         return existingKey;
       } else {
-        console.warn('Invalid encryption key format, generating new key');
+        console.warn('[ENC] Invalid encryption key format, generating new key');
       }
     } catch (error) {
-      console.error('Failed to read existing encryption key:', error);
+      console.error('[ENC] Failed to read existing encryption key:', error);
     }
   }
   
@@ -60,10 +60,9 @@ export function getOrCreateEncryptionKey(): string {
   
   try {
     fs.writeFileSync(keyPath, newKey, { mode: 0o600 });
-    console.log('New encryption key generated and stored securely');
+    console.log('[ENC] New encryption key generated and stored');
   } catch (error) {
-    console.error('Failed to store encryption key:', error);
-    // Continue with the key in memory (less secure but functional)
+    console.error('[ENC] Failed to store encryption key:', error);
   }
   
   return newKey;
@@ -122,12 +121,12 @@ export function isDatabaseEncrypted(dbPath: string): boolean {
  * @param newKey - The new encryption key
  */
 export function migrateToEncrypted(db: Database.Database, newKey: string): void {
-  console.log('Migrating unencrypted database to encrypted format...');
+  console.log('[ENC] Migrating database to encrypted format...');
   
   try {
     // Create a temporary encrypted database by exporting and re-importing
-    const tempDbPath = path.join(app.getPath('userData'), 'tova_backup.db');
-    const encryptedDbPath = path.join(app.getPath('userData'), 'tova.db');
+    const tempDbPath = path.join(app.getPath('userData'), 'focus_backup.db');
+    const encryptedDbPath = path.join(app.getPath('userData'), 'focus.db');
     
     // Close current connection
     db.close();
@@ -178,9 +177,9 @@ export function migrateToEncrypted(db: Database.Database, newKey: string): void 
     // Remove backup
     fs.unlinkSync(tempDbPath);
     
-    console.log('Database migration to encrypted format completed successfully');
+    console.log('[ENC] Database migration completed successfully');
   } catch (error) {
-    console.error('Failed to migrate database:', error);
+    console.error('[ENC] Failed to migrate database:', error);
     throw error;
   }
 }

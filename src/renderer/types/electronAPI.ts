@@ -16,6 +16,11 @@ export interface TestEvent {
   timestampNs: string;
   eventType: 'stimulus-onset' | 'stimulus-offset' | 'response' | 'buffer-start';
   responseCorrect?: boolean;
+  
+  // Response tracking (for response events)
+  responseTimeMs?: number;     // Time from stimulus onset to response in milliseconds
+  responseCount?: number;      // Number of responses this trial
+  isAnticipatory?: boolean;    // True if response within 150ms of onset
 }
 
 export interface TestCompleteResult {

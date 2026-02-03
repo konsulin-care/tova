@@ -1,5 +1,5 @@
 /**
- * F.O.C.U.S. Clinical Attention Test - Test Engine
+ * F.O.C.U.S. Assessment - Test Engine
  * 
  * Test state machine with high-precision timing for stimulus presentation
  * and response capture.
@@ -7,7 +7,6 @@
 
 import { BrowserWindow } from 'electron';
 import { 
-  TestConfig, 
   TestEvent, 
   StimulusType, 
   TestEventType 
@@ -58,6 +57,11 @@ let currentStimulusType: StimulusType = 'target';
  * Reference to the main window for sending events.
  */
 let mainWindow: BrowserWindow | null = null;
+
+/**
+ * Response count per trial (for detecting multiple responses).
+ */
+const responseCountPerTrial: Map<number, number> = new Map();
 
 // ===========================================
 // Window Reference
@@ -239,7 +243,7 @@ export function startTest(): boolean {
     return false;
   }
   
-  console.log('Starting F.O.C.U.S. test sequence...');
+  console.log('Starting F.O.C.U.S. Assessment test sequence...');
   
   // Reset test state
   testRunning = true;
@@ -248,6 +252,7 @@ export function startTest(): boolean {
   currentTrialIndex = 0;
   currentStimulusType = 'target';
   testStartTimeNs = getHighPrecisionTime();
+  responseCountPerTrial.clear();
   
   // Start the stimulus sequence
   runStimulusSequence();
@@ -265,7 +270,7 @@ export function stopTest(): boolean {
     return false;
   }
   
-  console.log('Stopping F.O.C.U.S. test sequence...');
+  console.log('Stopping F.O.C.U.S. Assessment test sequence...');
   testRunning = false;
   completeTest();
   
@@ -280,14 +285,14 @@ export function stopTest(): boolean {
 export function recordResponse(responded: boolean): void {
   const responseTimestampNs = getHighPrecisionTime();
   
-  // Allow responses up to 500ms after stimulus offset
-  const validWindowMs = 500;
+  // Use ISI as the valid response window (allows responses up to next stimulus)
   const config = getTestConfig();
   
   // Find pending response that hasn't been answered yet
+  // Valid if response is within the interstimulus interval from onset
   const pendingIndex = pendingResponses.findIndex(pr => {
     const elapsedMs = Number(responseTimestampNs - pr.onsetTimestampNs) / 1_000_000;
-    return elapsedMs < (config.stimulusDurationMs + validWindowMs);
+    return elapsedMs < config.interstimulusIntervalMs;
   });
   
   if (pendingIndex === -1) {
@@ -298,6 +303,9 @@ export function recordResponse(responded: boolean): void {
       timestampNs: responseTimestampNs.toString(),
       eventType: 'response',
       responseCorrect: false,
+      responseTimeMs: 0,
+      responseCount: 1,
+      isAnticipatory: false,
     };
     testEvents.push(event);
     return;
@@ -305,19 +313,32 @@ export function recordResponse(responded: boolean): void {
   
   const pending = pendingResponses[pendingIndex];
   
+  // Calculate response time from stimulus onset
+  const responseTimeMs = Number(responseTimestampNs - pending.onsetTimestampNs) / 1_000_000;
+  
+  // Determine if response is anticipatory (<150ms from onset)
+  const isAnticipatory = responseTimeMs < 150;
+  
+  // Increment response count for this trial
+  const currentCount = responseCountPerTrial.get(pending.trialIndex) || 0;
+  responseCountPerTrial.set(pending.trialIndex, currentCount + 1);
+  
   // Determine if response was correct
   const isCorrect = pending.expectedResponse === responded;
   
   // Remove from pending responses
   pendingResponses.splice(pendingIndex, 1);
   
-  // Record the response event
+  // Record the response event with timing data
   const event: TestEvent = {
     trialIndex: pending.trialIndex,
     stimulusType: pending.stimulusType,
     timestampNs: responseTimestampNs.toString(),
     eventType: 'response',
     responseCorrect: isCorrect,
+    responseTimeMs,
+    responseCount: currentCount + 1,
+    isAnticipatory,
   };
   
   testEvents.push(event);
