@@ -5,11 +5,10 @@ interface TrialOutcomesGridProps {
 }
 
 export function TrialOutcomesGrid({ metrics }: TrialOutcomesGridProps) {
-  const trialCount = metrics.trialCount;
-  const hitCount = Math.round(trialCount * (1 - metrics.omissionPercent / 100) * 0.5);
-  const omissionCount = Math.round(trialCount * metrics.omissionPercent / 100 * 0.5);
-  const commissionCount = Math.round(trialCount * metrics.commissionPercent / 100 * 0.5);
-  const correctRejectionCount = Math.round(trialCount * (1 - metrics.commissionPercent / 100) * 0.5);
+  const hitCount = metrics.hits;
+  const omissionCount = metrics.omissions;
+  const commissionCount = metrics.commissions;
+  const correctRejectionCount = metrics.correctRejections;
 
   return (
     <div className="grid grid-cols-2 gap-4 text-left bg-gray-800 p-4 rounded-lg">

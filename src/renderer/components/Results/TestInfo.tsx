@@ -6,10 +6,10 @@ interface TestInfoProps {
 }
 
 export function TestInfo({ metrics, elapsedTimeMs }: TestInfoProps) {
-  const totalResponses = Math.round(
-    metrics.trialCount * (1 - metrics.omissionPercent / 100) * 0.5 +
-    metrics.trialCount * metrics.commissionPercent / 100 * 0.5
-  );
+  // Calculate total user-initiated responses using raw counts
+  // This accurately captures all button presses: hits + commissions + anticipatory + multiple
+  const totalResponses = metrics.hits + metrics.commissions + 
+                          metrics.anticipatoryResponses + metrics.multipleResponses;
 
   const minutes = Math.floor(elapsedTimeMs / 60000);
   const seconds = String(Math.floor((elapsedTimeMs % 60000) / 1000)).padStart(2, '0');
@@ -24,7 +24,7 @@ export function TestInfo({ metrics, elapsedTimeMs }: TestInfoProps) {
       )}
       
       <div className="mt-4 text-gray-400">
-        Total responses: {totalResponses} / {metrics.trialCount} trials
+        Total responses: {totalResponses}
       </div>
       <div className="text-gray-400">
         Duration: {minutes}m {seconds}s

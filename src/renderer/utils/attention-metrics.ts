@@ -34,6 +34,7 @@ export function calculateAttentionMetrics(
   const commissions = trials.filter(t => t.outcome === 'commission').length;
   const correctRejections = trials.filter(t => t.outcome === 'correct-rejection').length;
   const anticipatoryResponses = trials.filter(t => t.isAnticipatory).length;
+  const multipleResponses = trials.filter(t => t.isMultipleResponse).length;
   
   // Calculate totals
   const totalTargets = hits + omissions;
@@ -156,12 +157,25 @@ export function calculateAttentionMetrics(
   }
   
   return {
+    // Raw response counts for accurate total responses calculation
+    hits,
+    commissions,
+    omissions,
+    correctRejections,
+    anticipatoryResponses,
+    multipleResponses,
+    
+    // ACS scoring
     acs,
     acsInterpretation,
+    
+    // Percentages
     omissionPercent,
     commissionPercent,
+    
+    // Other metrics
     dPrime,
-    variability: overallVariability,
+    variability,
     meanResponseTimeMs,
     validity,
     trialCount,

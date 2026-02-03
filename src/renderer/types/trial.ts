@@ -124,10 +124,28 @@ export interface AttentionMetrics {
   acs: number;
   /** Interpretation of ACS score */
   acsInterpretation: 'normal' | 'borderline' | 'not-within-normal-limits';
+  
+  // Raw response counts (for accurate total responses calculation)
+  /** Number of correct target detections (CORTGT) */
+  hits: number;
+  /** Number of incorrect responses to non-targets (COMERR) */
+  commissions: number;
+  /** Number of missed target stimuli (OMIT) */
+  omissions: number;
+  /** Number of correct non-responses to non-targets (CORNTR) */
+  correctRejections: number;
+  /** Number of anticipatory responses <150ms (ANTERR) */
+  anticipatoryResponses: number;
+  /** Number of trials with multiple button presses (MULT) */
+  multipleResponses: number;
+  
+  // Percentages (T.O.V.A. style calculations exclude anticipatory from denominator)
   /** Omission error percentage */
   omissionPercent: number;
   /** Commission error percentage */
   commissionPercent: number;
+  
+  // Other metrics
   /** D Prime (signal detection sensitivity) */
   dPrime: number;
   /** Response time variability (variance of response times) */
