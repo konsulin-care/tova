@@ -217,3 +217,33 @@ export function normalCDF(z: number): number {
   const result = 0.5 * (1.0 + sign * y);
   return result * 100;
 }
+
+/**
+ * Calculate response time variability (variance of response times).
+ * 
+ * @param responseTimes - Array of response times in milliseconds
+ * @param meanRT - Mean response time
+ * @returns Variability (sum of squared differences / count)
+ */
+export function calculateVariability(responseTimes: number[], meanRT: number): number {
+  if (responseTimes.length === 0) return 0;
+  const squaredDiffs = responseTimes.map(rt => Math.pow(rt - meanRT, 2));
+  return squaredDiffs.reduce((a, b) => a + b, 0) / responseTimes.length;
+}
+
+/**
+ * Calculate D Prime (signal detection sensitivity measure).
+ * Uses T.O.V.A. formula: D' = zFA - zHit
+ * 
+ * @param hitRate - Proportion of hits (0-1, clamped)
+ * @param falseAlarmRate - Proportion of false alarms (0-1, clamped)
+ * @returns D Prime value (higher = better perceptual sensitivity)
+ */
+export function calculateDPrime(hitRate: number, falseAlarmRate: number): number {
+  const clampedHitRate = clampProbability(hitRate);
+  const clampedFARate = clampProbability(falseAlarmRate);
+  const zHit = inverseNormalCDF(clampedHitRate);
+  const zFA = inverseNormalCDF(clampedFARate);
+  // T.O.V.A. formula: D' = zFA - zHit
+  return zFA - zHit;
+}
