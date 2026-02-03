@@ -15,7 +15,10 @@ import { TestConfig, DEFAULT_TEST_CONFIG } from './types';
 export function getTestConfig(): TestConfig {
   const config: TestConfig = { ...DEFAULT_TEST_CONFIG };
   
-  if (!db) return config;
+  if (!db) {
+    console.warn('[CFG] Database not initialized, returning defaults');
+    return config;
+  }
   
   try {
     const stmt = db.prepare('SELECT key, value FROM test_config');
@@ -41,7 +44,7 @@ export function getTestConfig(): TestConfig {
       }
     }
   } catch (error) {
-    console.error('Failed to load test config:', error);
+    console.error('[CFG] Failed to load test config:', error);
   }
   
   return config;
@@ -53,7 +56,10 @@ export function getTestConfig(): TestConfig {
  * @param newConfig - Configuration to save
  */
 export function saveTestConfig(newConfig: TestConfig): void {
-  if (!db) return;
+  if (!db) {
+    console.error('[CFG] Database not initialized!');
+    return;
+  }
   
   const upsertStmt = db.prepare(`
     INSERT INTO test_config (key, value) VALUES (?, ?)
@@ -69,9 +75,9 @@ export function saveTestConfig(newConfig: TestConfig): void {
   
   try {
     transaction();
-    console.log('Test config saved successfully');
+    console.log('[CFG] Test config saved successfully');
   } catch (error) {
-    console.error('Failed to save test config:', error);
+    console.error('[CFG] Failed to save test config:', error);
     throw error;
   }
 }

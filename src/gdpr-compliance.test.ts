@@ -1,7 +1,7 @@
 /**
  * GDPR Compliance Verification Tests
  * 
- * This test suite verifies the GDPR compliance features implemented in the TOVA application:
+ * This test suite verifies the GDPR compliance features implemented in the FOCUS application:
  * - Database schema with consent tracking and retention policy
  * - Auto-expire records on startup
  * - Consent validation in IPC handlers
@@ -420,8 +420,8 @@ describe('GDPR Compliance', () => {
  *    - Run: npm run electron-rebuild
  *    - Run app, complete test, enter email with consent
  *    - Close app
- *    - Open database file: ~/.config/tova/tova.db
- *    - Check header: xxd -l 32 ~/.config/tova/tova.db
+ *    - Open database file: ~/.config/focus/focus.db
+ *    - Check header: xxd -l 32 ~/.config/focus/focus.db
  *    - Verify file is encrypted (not readable as text)
  * 
  * 2. Retention Cleanup Verification:
@@ -439,7 +439,7 @@ describe('GDPR Compliance', () => {
  *    - Verify record saved with consent timestamp
  * 
  * 4. Key File Verification:
- *    - Check .tova_db_key file exists in userData
+ *    - Check .focus_db_key file exists in userData
  *    - Verify key file has correct permissions (600)
  *    - Verify key is 64 hex characters
  * 
