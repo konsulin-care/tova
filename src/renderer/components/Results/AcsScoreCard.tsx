@@ -20,7 +20,7 @@ export function AcsScoreCard({ metrics }: AcsScoreCardProps) {
          '✗ Not Within Normal Limits'}
       </div>
       <div className="text-blue-300 text-sm mt-2">
-        Attention Percentile: {normalCDF(metrics.acs - 1.80).toFixed(1)}%
+        F.O.C.U.S. Score: {normalCDF(metrics.acs - 1.80).toFixed(1)}%
       </div>
     </div>
   );

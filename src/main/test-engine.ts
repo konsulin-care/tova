@@ -7,7 +7,6 @@
 
 import { BrowserWindow } from 'electron';
 import { 
-  TestConfig, 
   TestEvent, 
   StimulusType, 
   TestEventType 
@@ -286,14 +285,14 @@ export function stopTest(): boolean {
 export function recordResponse(responded: boolean): void {
   const responseTimestampNs = getHighPrecisionTime();
   
-  // Allow responses up to 500ms after stimulus offset
-  const validWindowMs = 500;
+  // Use ISI as the valid response window (allows responses up to next stimulus)
   const config = getTestConfig();
   
   // Find pending response that hasn't been answered yet
+  // Valid if response is within the interstimulus interval from onset
   const pendingIndex = pendingResponses.findIndex(pr => {
     const elapsedMs = Number(responseTimestampNs - pr.onsetTimestampNs) / 1_000_000;
-    return elapsedMs < (config.stimulusDurationMs + validWindowMs);
+    return elapsedMs < config.interstimulusIntervalMs;
   });
   
   if (pendingIndex === -1) {
