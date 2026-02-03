@@ -27,7 +27,7 @@ interface TestEvent {
   trialIndex: number;
   stimulusType: StimulusType;
   timestampNs: string;
-  eventType: 'stimulus-onset' | 'stimulus-offset' | 'response';
+  eventType: 'stimulus-onset' | 'stimulus-offset' | 'response' | 'buffer-start';
   responseCorrect?: boolean;
 }
 

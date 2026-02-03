@@ -1,4 +1,3 @@
-import React from 'react';
 import Sidebar from './components/Sidebar';
 import Home from './pages/Home';
 import Test from './pages/Test';

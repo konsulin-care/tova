@@ -23,25 +23,13 @@ function TestScreen() {
   const [elapsedTimeMs, setElapsedTimeMs] = useState<number>(0);
   const [showEmailCapture, setShowEmailCapture] = useState(false);
   const [testDataJson, setTestDataJson] = useState<string>('');
+  const [hasRespondedToCurrentTrial, setHasRespondedToCurrentTrial] = useState(false);
   const { endTest } = useNavigation();
 
   // Fetch test config on mount
   useEffect(() => {
     window.electronAPI.getTestConfig().then(setTestConfig);
   }, []);
-
-  // Countdown timer effect
-  useEffect(() => {
-    if (phase !== 'countdown') return;
-
-    if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      // Start the test when countdown reaches 0
-      startTestSequence();
-    }
-  }, [countdown, phase]);
 
   // Start test sequence via main process
   const startTestSequence = useCallback(async () => {
@@ -55,6 +43,19 @@ function TestScreen() {
     }
   }, []);
 
+  // Countdown timer effect
+  useEffect(() => {
+    if (phase !== 'countdown') return;
+
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      // Start the test when countdown reaches 0
+      startTestSequence();
+    }
+  }, [countdown, phase, startTestSequence]);
+
   // Subscribe to stimulus changes from main process
   useEffect(() => {
     const unsubscribeStimulus = window.electronAPI.onStimulusChange((event) => {
@@ -65,11 +66,13 @@ function TestScreen() {
         setPhase('buffer');
         setIsStimulusVisible(false);
         setCurrentStimulus(null);
+        setHasRespondedToCurrentTrial(false);
       } else if (event.eventType === 'stimulus-onset') {
         setCurrentStimulus(event.stimulusType);
         setIsStimulusVisible(true);
         setTrialCount(event.trialIndex + 1);
         setPhase('running');
+        setHasRespondedToCurrentTrial(false);
       } else if (event.eventType === 'stimulus-offset') {
         setIsStimulusVisible(false);
       } else if (event.eventType === 'response') {
@@ -106,11 +109,13 @@ function TestScreen() {
   useEffect(() => {
     const handleClick = async (event: MouseEvent) => {
       if (phase !== 'running') return;
+      if (hasRespondedToCurrentTrial) return;
       
       // Left click is a response
       if (event.button === 0) {
         try {
           await window.electronAPI.recordResponse(true);
+          setHasRespondedToCurrentTrial(true);
         } catch (error) {
           console.error('Failed to record response:', error);
         }
@@ -119,12 +124,14 @@ function TestScreen() {
 
     const handleKeyDown = async (event: KeyboardEvent) => {
       if (phase !== 'running') return;
+      if (hasRespondedToCurrentTrial) return;
       
       // Spacebar is a response
       if (event.code === 'Space') {
         event.preventDefault();
         try {
           await window.electronAPI.recordResponse(true);
+          setHasRespondedToCurrentTrial(true);
         } catch (error) {
           console.error('Failed to record response:', error);
         }
@@ -138,7 +145,7 @@ function TestScreen() {
       window.removeEventListener('click', handleClick);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [phase]);
+  }, [phase, hasRespondedToCurrentTrial]);
 
   // Stop test handler
   const handleStopTest = useCallback(async () => {

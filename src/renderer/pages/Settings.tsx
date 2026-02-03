@@ -13,7 +13,9 @@ export default function Settings() {
   const [status, setStatus] = useState('');
 
   useEffect(() => {
-    window.electronAPI.getTestConfig().then(setConfig);
+    window.electronAPI.getTestConfig()
+      .then(setConfig)
+      .catch(() => setStatus('Failed to load settings'));
   }, []);
 
   const handleSave = async () => {
@@ -31,11 +33,16 @@ export default function Settings() {
   };
 
   const handleReset = async () => {
-    await window.electronAPI.resetTestConfig();
-    const newConfig = await window.electronAPI.getTestConfig();
-    setConfig(newConfig);
-    setStatus('Settings reset to defaults');
-    setTimeout(() => setStatus(''), 3000);
+    try {
+      await window.electronAPI.resetTestConfig();
+      const newConfig = await window.electronAPI.getTestConfig();
+      setConfig(newConfig);
+      setStatus('Settings reset to defaults');
+      setTimeout(() => setStatus(''), 3000);
+    } catch {
+      setStatus('Failed to reset settings');
+      setTimeout(() => setStatus(''), 3000);
+    }
   };
 
   const handleChange = (field: keyof TestConfig, value: number) => {

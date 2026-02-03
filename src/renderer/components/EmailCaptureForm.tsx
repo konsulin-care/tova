@@ -1,4 +1,4 @@
-import React, { useState, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 
 export interface EmailCaptureFormProps {
   testData: string;  // JSON string of test events
