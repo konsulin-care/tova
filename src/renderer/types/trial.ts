@@ -81,3 +81,65 @@ export interface TestMetrics {
   /** Overall consistency score */
   consistencyScore: number;
 }
+
+/**
+ * Subject demographic information for ACS calculation.
+ */
+export interface SubjectInfo {
+  /** Subject age in years */
+  age: number;
+  /** Subject gender */
+  gender: 'Male' | 'Female';
+}
+
+/**
+ * Validity assessment for test results.
+ */
+export interface ValidityAssessment {
+  /** Number of anticipatory responses */
+  anticipatoryResponses: number;
+  /** Whether the test is considered valid */
+  valid: boolean;
+  /** Reason for invalidity if not valid */
+  exclusionReason?: string;
+}
+
+/**
+ * Z-scores for individual attention components.
+ */
+export interface AttentionZScores {
+  /** Z-score for response time (first half of test) */
+  responseTime: number;
+  /** Z-score for D Prime (second half of test) */
+  dPrime: number;
+  /** Z-score for response time variability (total test) */
+  variability: number;
+}
+
+/**
+ * Comprehensive attention metrics including ACS scoring.
+ */
+export interface AttentionMetrics {
+  /** Attention Comparison Score */
+  acs: number;
+  /** Interpretation of ACS score */
+  acsInterpretation: 'normal' | 'borderline' | 'not-within-normal-limits';
+  /** Omission error percentage */
+  omissionPercent: number;
+  /** Commission error percentage */
+  commissionPercent: number;
+  /** D Prime (signal detection sensitivity) */
+  dPrime: number;
+  /** Response time variability (variance of response times) */
+  variability: number;
+  /** Mean response time in milliseconds */
+  meanResponseTimeMs: number;
+  /** Validity assessment */
+  validity: ValidityAssessment;
+  /** Number of trials in test */
+  trialCount: number;
+  /** Scaling factor applied to Z-scores (proportional to trial count) */
+  scalingFactor: number;
+  /** Z-scores for individual components */
+  zScores: AttentionZScores;
+}

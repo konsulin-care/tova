@@ -6,12 +6,25 @@
  */
 
 import { TestEvent, TestConfig } from '../types/electronAPI';
-import { TrialResult, TestMetrics, TrialOutcome } from '../types/trial';
+import { TrialResult, TestMetrics, TrialOutcome, SubjectInfo, AttentionMetrics } from '../types/trial';
+import { getNormativeStats } from './normative-data';
+import { zScore, clampProbability, inverseNormalCDF, calculateStdDev, calculateMean } from './statistics';
 
 /**
  * Threshold in milliseconds for anticipatory responses.
  */
 const ANTICIPATORY_THRESHOLD_MS = 150;
+
+/**
+ * Maximum valid anticipatory response percentage.
+ */
+const MAX_ANTICIPATORY_PERCENT = 20;
+
+/**
+ * Full test trial count (21.6 minute test).
+ * Used for proportional Z-score adjustment.
+ */
+const FULL_TEST_TRIALS = 648;
 
 /**
  * Calculate response time in milliseconds from onset to response.
@@ -166,7 +179,7 @@ export function processTestEvents(
  * @param mean - Mean value
  * @returns Standard deviation
  */
-function calculateStdDev(values: number[], mean: number): number {
+function calculateStdDevWithMean(values: number[], mean: number): number {
   if (values.length === 0) return 0;
   const squaredDiffs = values.map(v => Math.pow(v - mean, 2));
   const avgSquaredDiff = squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
@@ -195,7 +208,7 @@ export function calculateTestMetrics(trials: TrialResult[]): TestMetrics {
   const meanResponseTimeMs = responseTimes.length > 0
     ? responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
     : 0;
-  const stdResponseTimeMs = calculateStdDev(responseTimes, meanResponseTimeMs);
+  const stdResponseTimeMs = calculateStdDevWithMean(responseTimes, meanResponseTimeMs);
   
   // Validity indices
   const anticipatoryResponses = trials.filter(t => t.isAnticipatory).length;
@@ -232,5 +245,200 @@ export function calculateTestMetrics(trials: TrialResult[]): TestMetrics {
     attentionScore,
     impulseControlScore,
     consistencyScore,
+  };
+}
+
+/**
+ * Calculate D Prime (signal detection sensitivity measure).
+ * Uses T.O.V.A. formula: D' = zFA - zHit
+ * 
+ * @param hitRate - Proportion of hits (0-1, clamped)
+ * @param falseAlarmRate - Proportion of false alarms (0-1, clamped)
+ * @returns D Prime value (higher = better perceptual sensitivity)
+ */
+export function calculateDPrime(hitRate: number, falseAlarmRate: number): number {
+  const clampedHitRate = clampProbability(hitRate);
+  const clampedFARate = clampProbability(falseAlarmRate);
+  
+  const zHit = inverseNormalCDF(clampedHitRate);
+  const zFA = inverseNormalCDF(clampedFARate);
+  
+  // T.O.V.A. formula: D' = zFA - zHit
+  return zFA - zHit;
+}
+
+/**
+ * Calculate response time variability (variance of response times).
+ * 
+ * @param responseTimes - Array of response times in milliseconds
+ * @param meanRT - Mean response time
+ * @returns Variability (sum of squared differences / count)
+ */
+export function calculateVariability(responseTimes: number[], meanRT: number): number {
+  if (responseTimes.length === 0) return 0;
+  
+  const squaredDiffs = responseTimes.map(rt => Math.pow(rt - meanRT, 2));
+  return squaredDiffs.reduce((a, b) => a + b, 0) / responseTimes.length;
+}
+
+/**
+ * Calculate comprehensive attention metrics with ACS scoring.
+ * 
+ * @param events - Array of raw test events
+ * @param subjectInfo - Subject demographic information
+ * @returns Comprehensive attention metrics
+ */
+export function calculateAttentionMetrics(
+  events: TestEvent[],
+  subjectInfo: SubjectInfo
+): AttentionMetrics {
+  // Process events into trials
+  // Note: Using minimal config for event processing
+  const minimalConfig = { totalTrials: events.filter(e => e.eventType === 'stimulus-onset').length };
+  const trials = processTestEvents(events, minimalConfig as TestConfig);
+  
+  // Count outcomes
+  const hits = trials.filter(t => t.outcome === 'hit').length;
+  const omissions = trials.filter(t => t.outcome === 'omission').length;
+  const commissions = trials.filter(t => t.outcome === 'commission').length;
+  const correctRejections = trials.filter(t => t.outcome === 'correct-rejection').length;
+  const anticipatoryResponses = trials.filter(t => t.isAnticipatory).length;
+  
+  // Calculate totals
+  const totalTargets = hits + omissions;
+  const totalNonTargets = commissions + correctRejections;
+  const validTargets = totalTargets - anticipatoryResponses;
+  
+  // Calculate percentages
+  const omissionPercent = totalTargets > 0 ? (omissions / totalTargets) * 100 : 0;
+  const commissionPercent = totalNonTargets > 0 ? (commissions / totalNonTargets) * 100 : 0;
+  
+  // Collect response times for hits
+  const hitResponseTimes = trials
+    .filter(t => t.outcome === 'hit' && t.responseTimeMs !== null && !t.isAnticipatory)
+    .map(t => t.responseTimeMs as number);
+  
+  const meanResponseTimeMs = hitResponseTimes.length > 0
+    ? calculateMean(hitResponseTimes)
+    : 0;
+  
+  // Calculate variability
+  const variability = calculateVariability(hitResponseTimes, meanResponseTimeMs);
+  
+  // Split trials for ACS calculation
+  const midpoint = Math.floor(trials.length / 2);
+  const firstHalfTrials = trials.slice(0, midpoint);
+  const secondHalfTrials = trials.slice(midpoint);
+  const totalTrials = trials;
+  
+  // First half: Response Time Z
+  const firstHalfHits = firstHalfTrials.filter(t => t.outcome === 'hit' && !t.isAnticipatory);
+  const firstHalfResponseTimes = firstHalfHits.map(t => t.responseTimeMs as number);
+  const firstHalfMeanRT = firstHalfResponseTimes.length > 0
+    ? calculateMean(firstHalfResponseTimes)
+    : meanResponseTimeMs;
+  const firstHalfSD = calculateStdDev(firstHalfResponseTimes);
+  
+  // Second half: D' Z
+  const secondHalfHits = secondHalfTrials.filter(t => t.outcome === 'hit').length;
+  const secondHalfOmissions = secondHalfTrials.filter(t => t.outcome === 'omission').length;
+  const secondHalfCommissions = secondHalfTrials.filter(t => t.outcome === 'commission').length;
+  const secondHalfCorrectRejections = secondHalfTrials.filter(t => t.outcome === 'correct-rejection').length;
+  
+  const secondHalfTargets = secondHalfHits + secondHalfOmissions;
+  const secondHalfNonTargets = secondHalfCommissions + secondHalfCorrectRejections;
+  
+  const hitRate = secondHalfTargets > 0 ? secondHalfHits / secondHalfTargets : 0.5;
+  const falseAlarmRate = secondHalfNonTargets > 0 ? secondHalfCommissions / secondHalfNonTargets : 0.5;
+  const dPrime = calculateDPrime(hitRate, falseAlarmRate);
+  
+  // Total: Variability Z
+  const hitResponseTimesAll = totalTrials
+    .filter(t => t.outcome === 'hit' && !t.isAnticipatory)
+    .map(t => t.responseTimeMs as number);
+  const overallMeanRT = hitResponseTimesAll.length > 0
+    ? calculateMean(hitResponseTimesAll)
+    : meanResponseTimeMs;
+  const overallVariability = calculateVariability(hitResponseTimesAll, overallMeanRT);
+  
+  // Get normative data
+  const normativeStats = getNormativeStats(subjectInfo.age, subjectInfo.gender);
+  
+  // Calculate proportional scaling factor based on trial count
+  // For n trials, use SD * sqrt(n/648) to scale Z-scores proportionally
+  const trialCount = trials.length;
+  const scalingFactor = Math.sqrt(trialCount / FULL_TEST_TRIALS);
+  
+  // Calculate Z-scores
+  let rtZ = 0;
+  let dPrimeZ = 0;
+  let variabilityZ = 0;
+  
+  if (normativeStats) {
+    // Response Time Z (first half) - note: higher RT is worse, so we negate
+    // Apply proportional scaling
+    rtZ = -zScore(firstHalfMeanRT, normativeStats.responseTimeMean, normativeStats.responseTimeSD) * scalingFactor;
+    
+    // D' Z (second half) - higher is better
+    dPrimeZ = zScore(dPrime, normativeStats.dPrimeMean, normativeStats.dPrimeSD) * scalingFactor;
+    
+    // Variability Z (total) - higher variability is worse, so we negate
+    variabilityZ = -zScore(overallVariability, normativeStats.variabilityMean, normativeStats.variabilitySD) * scalingFactor;
+  }
+  
+  // Calculate ACS: scaled Z-scores + constant
+  // The constant (1.80) is adjusted proportionally: 1.80 * scalingFactor
+  const acs = (rtZ + dPrimeZ + variabilityZ) * scalingFactor + (1.80 * scalingFactor);
+  
+  // Interpret ACS
+  let acsInterpretation: 'normal' | 'borderline' | 'not-within-normal-limits';
+  if (acs >= 2 * scalingFactor) {
+    acsInterpretation = 'normal';
+  } else if (acs >= 1.5 * scalingFactor) {
+    acsInterpretation = 'borderline';
+  } else {
+    acsInterpretation = 'not-within-normal-limits';
+  }
+  
+  // Validity assessment - proportional to trial count
+  const anticipatoryPercent = totalTargets > 0 ? (anticipatoryResponses / totalTargets) * 100 : 0;
+  const minValidResponses = Math.max(5, Math.floor(10 * scalingFactor));
+  let validity: AttentionMetrics['validity'];
+  
+  if (anticipatoryPercent > MAX_ANTICIPATORY_PERCENT) {
+    validity = {
+      anticipatoryResponses,
+      valid: false,
+      exclusionReason: `High anticipatory response rate (${anticipatoryPercent.toFixed(1)}% of targets)`,
+    };
+  } else if (hitResponseTimes.length < minValidResponses) {
+    validity = {
+      anticipatoryResponses,
+      valid: false,
+      exclusionReason: `Insufficient valid response data (${hitResponseTimes.length}/${minValidResponses} minimum)`,
+    };
+  } else {
+    validity = {
+      anticipatoryResponses,
+      valid: true,
+    };
+  }
+  
+  return {
+    acs,
+    acsInterpretation,
+    omissionPercent,
+    commissionPercent,
+    dPrime,
+    variability: overallVariability,
+    meanResponseTimeMs,
+    validity,
+    trialCount,
+    scalingFactor,
+    zScores: {
+      responseTime: rtZ,
+      dPrime: dPrimeZ,
+      variability: variabilityZ,
+    },
   };
 }
