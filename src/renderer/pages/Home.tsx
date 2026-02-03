@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-4 text-gray-900">
-        FOCUS Assessment
+        F.O.C.U.S. Assessment
       </h1>
       <p className="text-gray-600 mb-6 text-lg">
         F.O.C.U.S. (Following Ongoing Cues Under Structure) is a computer-based
