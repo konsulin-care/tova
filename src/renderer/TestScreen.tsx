@@ -15,7 +15,7 @@ function TestScreen() {
   const { phase, setPhase, countdown, testConfig } = useTestPhase();
   
   // Call useTestInput to enable click/spacebar responses
-  const { hasResponded, recordResponse, resetResponse } = useTestInput(phase);
+  const { resetResponse } = useTestInput(phase);
   
   const { 
     testEvents, 

@@ -7,7 +7,7 @@
 import { TestEvent, TestConfig } from '../types/electronAPI';
 import { SubjectInfo, AttentionMetrics } from '../types/trial';
 import { getNormativeStats } from './normative-data';
-import { zScore, calculateStdDev, calculateMean, calculateVariability } from './basic-stats';
+import { zScore, calculateMean, calculateVariability } from './basic-stats';
 import { calculateDPrime } from './clinical-metrics';
 import { processTestEvents } from './trial-processing';
 import { TRIAL_CONSTANTS } from './trial-constants';
@@ -39,7 +39,6 @@ export function calculateAttentionMetrics(
   // Calculate totals
   const totalTargets = hits + omissions;
   const totalNonTargets = commissions + correctRejections;
-  const validTargets = totalTargets - anticipatoryResponses;
   
   // Calculate percentages
   const omissionPercent = totalTargets > 0 ? (omissions / totalTargets) * 100 : 0;
@@ -69,7 +68,6 @@ export function calculateAttentionMetrics(
   const firstHalfMeanRT = firstHalfResponseTimes.length > 0
     ? calculateMean(firstHalfResponseTimes)
     : meanResponseTimeMs;
-  const firstHalfSD = calculateStdDev(firstHalfResponseTimes);
   
   // Second half: D' Z
   const secondHalfHits = secondHalfTrials.filter(t => t.outcome === 'hit').length;
