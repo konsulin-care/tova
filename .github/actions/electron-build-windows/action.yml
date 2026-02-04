@@ -9,18 +9,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install Wine for Windows builds
-      uses: nick-fields/retry@v3
-      with:
-        timeout_minutes: 10
-        max_attempts: 3
-        command: |
-          # Install Wine dependencies
-          apt-get update
-          apt-get install -y wine64 wine32 winbind cabextract wget
-          # Enable 32-bit support
-          dpkg --add-architecture i386
-    
     - name: Build Windows EXE
       shell: bash
       run: |
@@ -36,10 +24,9 @@ runs:
         # CSC_FILES_LINK: ${{ secrets.WINDOWS_CERTIFICATE }}
     
     - name: Generate SHA256 checksum
-      shell: bash
+      shell: pwsh
       run: |
-        cd release
-        CertUtil -hashfile focus-v${{ inputs.version }}-windows.exe SHA256 | Select-Object -Skip 1 > focus-v${{ inputs.version }}-windows.exe.sha256sum
+        Get-FileHash -Algorithm SHA256 "release/focus-v${{ inputs.version }}-windows.exe" | ForEach-Object { $_.Hash } > "release/focus-v${{ inputs.version }}-windows.exe.sha256sum"
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4

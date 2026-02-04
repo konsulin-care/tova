@@ -15,7 +15,7 @@ concurrency:
 
 # Permissions for the workflow
 permissions:
-  contents: read
+  contents: write
   attestations: write
   id-token: write
 
@@ -39,17 +39,20 @@ jobs:
         id: version
         run: |
           # Extract version from git tag (remove 'v' prefix if present)
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
-          # Check if this is a release (tag starts with v)
+          # Only set version for tag refs, empty for branch pushes
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "is_release=true" >> $GITHUB_OUTPUT
           else
+            echo "version=" >> $GITHUB_OUTPUT
             echo "is_release=false" >> $GITHUB_OUTPUT
           fi
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "Is Release: ${{ steps.version.outputs.is_release }}"
       
       - name: Verify version format
+        if: steps.version.outputs.is_release == 'true'
         run: |
           if ! [[ ${{ steps.version.outputs.version }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Error: Version must be in format X.Y.Z (semantic versioning)"
@@ -60,7 +63,7 @@ jobs:
       - name: Display build information
         run: |
           echo "Version: ${{ steps.version.outputs.version }}"
-          echo "Is Release: ${{ needs.prepare.outputs.is_release }}"
+          echo "Is Release: ${{ steps.version.outputs.is_release }}"
           echo "GitHub Ref: ${{ github.ref }}"
           echo "Event: ${{ github.event_name }}"
 
