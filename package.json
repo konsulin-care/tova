@@ -54,13 +54,14 @@
     ],
     "win": {
       "target": [
-        "nsis"
+        "portable"
       ]
     },
     "mac": {
       "target": [
         "dmg"
-      ]
+      ],
+      "category": "public.app-category.medical"
     },
     "linux": {
       "target": [

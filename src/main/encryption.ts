@@ -128,6 +128,11 @@ export function migrateToEncrypted(db: Database.Database, newKey: string): void 
     const tempDbPath = path.join(app.getPath('userData'), 'focus_backup.db');
     const encryptedDbPath = path.join(app.getPath('userData'), 'focus.db');
     
+    // Helper function to safely quote SQL identifiers (prevents SQL injection)
+    function quoteIdentifier(identifier: string): string {
+      return `"${identifier.replace(/"/g, '""')}"`;
+    }
+    
     // Close current connection
     db.close();
     
@@ -158,15 +163,33 @@ export function migrateToEncrypted(db: Database.Database, newKey: string): void 
       // Create table in encrypted database
       encryptedDb.exec(schema.sql);
       
-      // Copy data
-      const data = backupDb.prepare(`SELECT * FROM ${table.name}`).all() as Record<string, unknown>[];
+      // Get column info to identify generated/virtual columns
+      // PRAGMA table_xinfo returns hidden column: 0=normal, 1=generated, 2=hidden
+      const columnInfo = backupDb
+        .prepare(`PRAGMA table_xinfo(${table.name})`)
+        .all() as Array<{name: string, hidden: number}>;
+      const writableColumns = columnInfo
+        .filter(col => col.hidden === 0)  // Only include non-hidden columns (excludes generated/virtual columns)
+        .map(col => col.name);
+      
+      if (writableColumns.length === 0) {
+        console.log(`[ENC] Skipping table ${table.name} - no writable columns`);
+        continue;
+      }
+      
+      // Copy data using only writable columns
+      const quotedTableName = quoteIdentifier(table.name);
+      const quotedColumns = writableColumns.map(quoteIdentifier);
+      
+      const data = backupDb.prepare(`SELECT ${quotedColumns.join(', ')} FROM ${quotedTableName}`).all() as Record<string, unknown>[];
       if (data.length > 0) {
-        const columns = Object.keys(data[0]).join(', ');
-        const placeholders = Object.keys(data[0]).map(() => '?').join(', ');
-        const insertStmt = encryptedDb.prepare(`INSERT INTO ${table.name} (${columns}) VALUES (${placeholders})`);
+        const columns = quotedColumns.join(', ');
+        const placeholders = writableColumns.map(() => '?').join(', ');
+        const insertStmt = encryptedDb.prepare(`INSERT INTO ${quotedTableName} (${columns}) VALUES (${placeholders})`);
         
         for (const row of data) {
-          insertStmt.run(...Object.values(row));
+          const values = writableColumns.map(col => row[col]);
+          insertStmt.run(...values);
         }
       }
     }
