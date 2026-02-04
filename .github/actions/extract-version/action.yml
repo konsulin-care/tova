@@ -49,7 +49,7 @@ runs:
 
         # Search for version tag in PR commits (in reverse order - newest first)
         echo "Searching for version tag in PR commits..."
-        PR_COMMITS=$(git log --format="%H" "$BASE_SHA" ^"$HEAD_SHA" 2>/dev/null || git log --format="%H" "$BASE_SHA..$HEAD_SHA")
+        PR_COMMITS=$(git log --format="%H" "$BASE_SHA..$HEAD_SHA")
 
         VERSION=""
         for commit in $PR_COMMITS; do

@@ -56,6 +56,9 @@ jobs:
   build:
     name: Build ${{ matrix.platform }}
     needs: prepare
+
+    # Only run if this is a release (version tag exists)
+    if: needs.prepare.outputs.is_release == 'true'
     runs-on: ${{ matrix.runs-on }}
     outputs:
       platform: ${{ matrix.platform }}
