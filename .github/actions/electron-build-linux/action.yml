@@ -22,6 +22,7 @@ runs:
     - name: Install system dependencies
       shell: bash
       run: |
+        set -e
         sudo apt-get update
         sudo apt-get install -y \
           libnss3 \
@@ -42,6 +43,7 @@ runs:
     - name: Build AppImage
       shell: bash
       run: |
+        set -e
         if [ -n "${{ inputs.version }}" ]; then
           npm version ${{ inputs.version }} --no-git-tag-version
         fi
@@ -53,6 +55,7 @@ runs:
     - name: Generate SHA256 checksum
       shell: bash
       run: |
+        set -e
         cd release
         VERSION="${{ inputs.version }}"
         if [ -z "$VERSION" ]; then
@@ -64,7 +67,7 @@ runs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: focus-linux-appimage
+        name: focus-linux-${{ inputs.version }}
         path: release/
         retention-days: 7
         compression-level: 9

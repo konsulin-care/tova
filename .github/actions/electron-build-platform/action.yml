@@ -5,11 +5,9 @@ inputs:
   platform:
     description: 'Target platform (linux, macos, windows)'
     required: true
-    type: string
   version:
     description: 'Version string for artifact naming'
     required: true
-    type: string
 
 runs:
   using: 'composite'
@@ -31,6 +29,7 @@ runs:
       if: inputs.platform == 'linux'
       shell: bash
       run: |
+        set -e
         sudo apt-get update
         sudo apt-get install -y \
           libnss3 \
@@ -52,6 +51,7 @@ runs:
     - name: Build ${{ inputs.platform }} artifact
       shell: bash
       run: |
+        set -e
         if [ -n "${{ inputs.version }}" ]; then
           npm version ${{ inputs.version }} --no-git-tag-version
         fi
@@ -74,6 +74,7 @@ runs:
     - name: Generate SHA256 checksum
       shell: bash
       run: |
+        set -e
         cd release
         VERSION="${{ inputs.version }}"
         if [ -z "$VERSION" ]; then
@@ -91,8 +92,9 @@ runs:
             fi
             ;;
           windows)
-            # Use PowerShell on Windows
-            powershell -Command "& { Get-FileHash -Algorithm SHA256 'release/focus-${VERSION}.exe' | ForEach-Object { \$_.Hash } > 'release/focus-${VERSION}.exe.sha256sum' }"
+            # Use PowerShell on Windows - assemble filename in bash and pass to PowerShell
+            FILENAME="focus-${VERSION}.exe"
+            powershell -Command "& { Get-FileHash -Algorithm SHA256 '${FILENAME}' | ForEach-Object { \$_.Hash } > '${FILENAME}.sha256sum' }"
             ;;
         esac
         cat focus-${VERSION}.*.sha256sum
