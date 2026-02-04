@@ -56,6 +56,18 @@ During the refactoring, a critical bug was discovered and fixed:
 - Before fix: 3 targets → 1 hit, 2 omissions (incorrect)
 - After fix: 3 targets → 3 hits, 0 omissions (correct)
 
+### Bug Fix: Response Validation Timing (Completed)
+
+**Issue:** Response validation used only `interstimulusIntervalMs` instead of the full response window (`stimulusDurationMs + interstimulusIntervalMs`). This could cause valid responses during long stimuli to be flagged as commission errors.
+
+**Root Cause:** In `response-tracker.ts`, the `processResponse` method validated responses against `interstimulusIntervalMs` only, which fails when `stimulusDurationMs > interstimulusIntervalMs`.
+
+**Fix Applied:** Changed validation to use `stimulusDurationMs + interstimulusIntervalMs` as the full response window, ensuring correct behavior for all configuration values.
+
+**Result:**
+- Valid responses are now correctly recognized regardless of stimulus duration
+- Extended stimulus configurations work correctly
+
 ### Test Engine & Timing (Completed)
 - High-precision test engine with `process.hrtime.bigint()` nanosecond timestamps
 - Drift-corrected stimulus scheduling for timing accuracy

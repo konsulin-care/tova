@@ -28,6 +28,7 @@ export interface ResponseResult {
  * - Validate responses against stimulus onset timing
  * - Detect anticipatory responses (< threshold)
  * - Detect commission errors (responses outside valid window)
+ *   Valid window = stimulusDurationMs + interstimulusIntervalMs
  * - Track response counts per trial (multiple responses)
  */
 export class ResponseTracker {
@@ -107,10 +108,12 @@ export class ResponseTracker {
       return null;
     }
 
-    // Find valid pending response within ISI window
+    // Find valid pending response within the full response window
+    // The window includes stimulus duration + interstimulus interval
+    const responseWindowMs = this.config.stimulusDurationMs + this.config.interstimulusIntervalMs;
     const pendingIndex = this.pendingResponses.findIndex(pr => {
       const elapsedMs = Number(responseTimestampNs - pr.onsetTimestampNs) / 1_000_000;
-      return elapsedMs < this.config.interstimulusIntervalMs;
+      return elapsedMs < responseWindowMs;
     });
 
     if (pendingIndex === -1) {
