@@ -1,0 +1,107 @@
+name: 'Electron Build Platform'
+description: 'Build Electron app for a specific platform with conditional platform-specific steps'
+
+inputs:
+  platform:
+    description: 'Target platform (linux, macos, windows)'
+    required: true
+    type: string
+  version:
+    description: 'Version string for artifact naming'
+    required: true
+    type: string
+
+runs:
+  using: 'composite'
+  steps:
+    # Linux-specific: Cache Electron Builder
+    - name: Cache Electron Builder (Linux)
+      if: inputs.platform == 'linux'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/electron
+          ~/.cache/electron-builder
+        key: ${{ runner.os }}-electron-builder-${{ hashFiles('package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-electron-builder-
+
+    # Linux-specific: Install system dependencies
+    - name: Install system dependencies (Linux)
+      if: inputs.platform == 'linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libnss3 \
+          libatk1.0-0 \
+          libatk-bridge2.0-0 \
+          libcups2 \
+          libdrm2 \
+          libgtk-3-0 \
+          libgbm1 \
+          libasound2t64 \
+          libxshmfence1 \
+          wget \
+          ca-certificates \
+          fonts-liberation \
+          libappindicator3-1 \
+          xdg-utils
+
+    # Build artifact based on platform
+    - name: Build ${{ inputs.platform }} artifact
+      shell: bash
+      run: |
+        if [ -n "${{ inputs.version }}" ]; then
+          npm version ${{ inputs.version }} --no-git-tag-version
+        fi
+        case "${{ inputs.platform }}" in
+          linux)
+            npx electron-builder --linux AppImage
+            ;;
+          macos)
+            npx electron-builder --mac dmg
+            ;;
+          windows)
+            npx electron-builder --win portable
+            ;;
+        esac
+      env:
+        DEBUG: electron-builder
+        CSC_IDENTITY_AUTO_DISCOVERY: false
+
+    # Generate SHA256 checksum (Linux/macOS)
+    - name: Generate SHA256 checksum
+      shell: bash
+      run: |
+        cd release
+        VERSION="${{ inputs.version }}"
+        if [ -z "$VERSION" ]; then
+          VERSION="$(node -p "require('../package.json').version")"
+        fi
+        case "${{ inputs.platform }}" in
+          linux)
+            sha256sum focus-${VERSION}.AppImage > focus-${VERSION}.AppImage.sha256sum
+            ;;
+          macos)
+            if command -v sha256sum &> /dev/null; then
+              sha256sum focus-${VERSION}.dmg > focus-${VERSION}.dmg.sha256sum
+            else
+              shasum -a 256 focus-${VERSION}.dmg > focus-${VERSION}.dmg.sha256sum
+            fi
+            ;;
+          windows)
+            # Use PowerShell on Windows
+            powershell -Command "& { Get-FileHash -Algorithm SHA256 'release/focus-${VERSION}.exe' | ForEach-Object { \$_.Hash } > 'release/focus-${VERSION}.exe.sha256sum' }"
+            ;;
+        esac
+        cat focus-${VERSION}.*.sha256sum
+
+    # Upload artifact
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: focus-${{ inputs.platform }}-${{ inputs.version }}
+        path: release/
+        retention-days: 7
+        compression-level: 9

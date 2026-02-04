@@ -63,16 +63,13 @@ jobs:
         include:
           - platform: Linux (AppImage)
             runs-on: ubuntu-latest
-            artifact-name: focus-linux-appimage
-            action-ref: ./.github/actions/electron-build-linux
+            platform-name: linux
           - platform: macOS (DMG)
             runs-on: macos-latest
-            artifact-name: focus-macos-dmg
-            action-ref: ./.github/actions/electron-build-macos
+            platform-name: macos
           - platform: Windows (EXE)
             runs-on: windows-latest
-            artifact-name: focus-windows-exe
-            action-ref: ./.github/actions/electron-build-windows
+            platform-name: windows
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
     steps:
@@ -85,8 +82,9 @@ jobs:
         uses: ./.github/actions/electron-build-common
 
       - name: Build ${{ matrix.platform }} artifact
-        uses: ${{ matrix.action-ref }}
+        uses: ./.github/actions/electron-build-platform
         with:
+          platform: ${{ matrix.platform-name }}
           version: ${{ env.VERSION }}
 
   # Create GitHub release
