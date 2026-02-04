@@ -12,10 +12,8 @@ runs:
     - name: Build Windows EXE
       shell: bash
       run: |
-        npx electron-builder --win portable \
-          --config.from=package.json \
-          --build-version=${{ inputs.version }} \
-          --config.publish=null
+        npm version ${{ inputs.version }} --no-git-tag-version
+        npx electron-builder --win portable --config.publish=null
       env:
         DEBUG: electron-builder
         # Code signing configuration (for production, set these secrets)

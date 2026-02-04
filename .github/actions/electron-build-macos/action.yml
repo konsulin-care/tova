@@ -12,10 +12,8 @@ runs:
     - name: Build DMG
       shell: bash
       run: |
-        npx electron-builder --mac dmg \
-          --config.from=package.json \
-          --build-version=${{ inputs.version }} \
-          --config.publish=null
+        npm version ${{ inputs.version }} --no-git-tag-version
+        npx electron-builder --mac dmg --config.publish=null
       env:
         DEBUG: electron-builder
         CSC_IDENTITY_AUTO_DISCOVERY: false
