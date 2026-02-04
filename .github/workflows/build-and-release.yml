@@ -76,16 +76,10 @@ jobs:
   build-linux:
     name: Build Linux (AppImage)
     needs: prepare
-    runs-on: ubuntu-latest
-    container: ubuntu:latest
+    runs-on: ubuntu-latest # Come with a pre-installed `git`
     env:
       VERSION: ${{ needs.prepare.outputs.version }}
     steps:
-      - name: Install git (container)
-        run: |
-          apt-get update
-          apt-get install -y git
-
       - name: Checkout repository
         uses: actions/checkout@v6
         with:

@@ -9,6 +9,16 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Cache Electron Builder
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/electron
+          ~/.cache/electron-builder
+        key: ${{ runner.os }}-electron-builder-${{ hashFiles('package.json') }}
+        restore-keys: |
+          ${{ runner.os }}-electron-builder-
+
     - name: Install system dependencies
       shell: bash
       run: |
@@ -28,7 +38,7 @@ runs:
           fonts-liberation \
           libappindicator3-1 \
           xdg-utils
-    
+
     - name: Build AppImage
       shell: bash
       run: |
@@ -37,14 +47,14 @@ runs:
       env:
         DEBUG: electron-builder
         CSC_IDENTITY_AUTO_DISCOVERY: false
-    
+
     - name: Generate SHA256 checksum
       shell: bash
       run: |
         cd release
         sha256sum focus-v${{ inputs.version }}-linux.AppImage > focus-v${{ inputs.version }}-linux.AppImage.sha256sum
         cat focus-v${{ inputs.version }}-linux.AppImage.sha256sum
-    
+
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
