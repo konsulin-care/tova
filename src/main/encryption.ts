@@ -158,15 +158,28 @@ export function migrateToEncrypted(db: Database.Database, newKey: string): void 
       // Create table in encrypted database
       encryptedDb.exec(schema.sql);
       
-      // Copy data
-      const data = backupDb.prepare(`SELECT * FROM ${table.name}`).all() as Record<string, unknown>[];
+      // Get column info to identify generated/virtual columns
+      // Generated columns have a non-null 'dflt_value' in PRAGMA table_info
+      const columnInfo = backupDb.prepare(`PRAGMA table_info(${table.name})`).all() as Array<{name: string, dflt_value: unknown}>;
+      const writableColumns = columnInfo
+        .filter(col => col.dflt_value === null)  // Only include columns without defaults (excludes generated columns)
+        .map(col => col.name);
+      
+      if (writableColumns.length === 0) {
+        console.log(`[ENC] Skipping table ${table.name} - no writable columns`);
+        continue;
+      }
+      
+      // Copy data using only writable columns
+      const data = backupDb.prepare(`SELECT ${writableColumns.join(', ')} FROM ${table.name}`).all() as Record<string, unknown>[];
       if (data.length > 0) {
-        const columns = Object.keys(data[0]).join(', ');
-        const placeholders = Object.keys(data[0]).map(() => '?').join(', ');
+        const columns = writableColumns.join(', ');
+        const placeholders = writableColumns.map(() => '?').join(', ');
         const insertStmt = encryptedDb.prepare(`INSERT INTO ${table.name} (${columns}) VALUES (${placeholders})`);
         
         for (const row of data) {
-          insertStmt.run(...Object.values(row));
+          const values = writableColumns.map(col => row[col]);
+          insertStmt.run(...values);
         }
       }
     }
