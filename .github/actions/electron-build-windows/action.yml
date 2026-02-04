@@ -15,7 +15,7 @@ runs:
         if [ -n "${{ inputs.version }}" ]; then
           npm version ${{ inputs.version }} --no-git-tag-version
         fi
-        npx electron-builder --win portable --config.publish=null
+        npx electron-builder --win portable
       env:
         DEBUG: electron-builder
         # Code signing configuration (for production, set these secrets)
@@ -28,7 +28,7 @@ runs:
       run: |
         $version = "${{ inputs.version }}"
         if ([string]::IsNullOrWhiteSpace($version)) {
-          $version = (node -p "require('./package.json').version")
+          $version = (node -p "require('../package.json').version")
         }
         Get-FileHash -Algorithm SHA256 "release/focus-$version.exe" | ForEach-Object { $_.Hash } > "release/focus-$version.exe.sha256sum"
     
