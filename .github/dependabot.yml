@@ -1,0 +1,50 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      react-major:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+        update-types:
+          - "major"
+      electron-major:
+        patterns:
+          - "electron"
+          - "@electron/rebuild"
+          - "electron-builder"
+        update-types:
+          - "major"
+      typescript-major:
+        patterns:
+          - "typescript"
+          - "@types/node"
+          - "@types/better-sqlite3"
+        update-types:
+          - "major"
+      build-tools-major:
+        patterns:
+          - "vite"
+          - "@vitejs/plugin-react"
+          - "tailwindcss"
+          - "@tailwindcss/vite"
+        update-types:
+          - "major"
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      all-updates:
+        patterns:
+          - "*"
