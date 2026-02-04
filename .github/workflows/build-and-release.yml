@@ -194,8 +194,8 @@ jobs:
             
             **Linux:** Download the AppImage, make it executable, and run.
             ```bash
-            chmod +x focus-v${{ needs.prepare.outputs.version }}-linux.AppImage
-            ./focus-v${{ needs.prepare.outputs.version }}-linux.AppImage
+            chmod +x focus-${{ needs.prepare.outputs.version }}.AppImage
+            ./focus-${{ needs.prepare.outputs.version }}.AppImage
             ```
             
             **macOS:** Open the DMG file and drag the application to your Applications folder.
@@ -231,6 +231,6 @@ jobs:
           echo "| Windows (EXE) | ${{ needs.build-windows.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "- focus-v${{ needs.prepare.outputs.version }}-linux.AppImage" >> $GITHUB_STEP_SUMMARY
-          echo "- focus-v${{ needs.prepare.outputs.version }}-macOS.dmg" >> $GITHUB_STEP_SUMMARY
-          echo "- focus-v${{ needs.prepare.outputs.version }}-windows.exe" >> $GITHUB_STEP_SUMMARY
+          echo "- focus-${{ needs.prepare.outputs.version }}.AppImage" >> $GITHUB_STEP_SUMMARY
+          echo "- focus-${{ needs.prepare.outputs.version }}.dmg" >> $GITHUB_STEP_SUMMARY
+          echo "- focus-${{ needs.prepare.outputs.version }}.exe" >> $GITHUB_STEP_SUMMARY
