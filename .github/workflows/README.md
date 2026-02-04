@@ -115,7 +115,7 @@ All artifacts follow the naming convention: `focus-{version}.{ext}`
 
 | Platform | Extension | Example |
 |----------|-----------|---------|
-| Linux | .AppImage | focusv1.0.0.AppImage |
+| Linux | .AppImage | focus-1.0.0.AppImage |
 | macOS | .dmg | focus-1.0.0.dmg |
 | Windows | .exe | focus-1.0.0.exe |
 

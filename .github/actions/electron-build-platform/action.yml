@@ -79,6 +79,8 @@ runs:
         cd release
         sha256sum "focus-${VERSION}.AppImage" > "focus-${VERSION}.AppImage.sha256sum"
         cat "focus-${VERSION}.AppImage.sha256sum"
+      env:
+        VERSION: ${{ inputs.version }}
 
     - name: Generate SHA256 checksum (macOS)
       if: inputs.platform == 'macos'
@@ -92,13 +94,15 @@ runs:
           shasum -a 256 "focus-${VERSION}.dmg" > "focus-${VERSION}.dmg.sha256sum"
         fi
         cat "focus-${VERSION}.dmg.sha256sum"
+      env:
+        VERSION: ${{ inputs.version }}
 
     - name: Generate SHA256 checksum (Windows)
       if: inputs.platform == 'windows'
       shell: pwsh
       run: |
-        set -e
-        cd release
+        $ErrorActionPreference = "Stop"
+        Set-Location release
         $version = "${{ inputs.version }}"
         $filename = "focus-${version}.exe"
         Get-FileHash -Algorithm SHA256 $filename | ForEach-Object { $_.Hash } | Out-File -FilePath "${filename}.sha256sum"

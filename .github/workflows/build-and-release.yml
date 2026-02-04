@@ -118,7 +118,23 @@ jobs:
     if: ${{ !cancelled() && (needs.prepare.result == 'success' || needs.build.result == 'success') }}
     steps:
       - name: Generate Build Summary
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          PREPARE_RESULT: ${{ needs.prepare.result }}
         run: |
+          # Determine status emoji based on job results
+          if [ "$BUILD_RESULT" = "success" ]; then
+            BUILD_STATUS="✅ Success"
+          elif [ "$BUILD_RESULT" = "failure" ]; then
+            BUILD_STATUS="❌ Failure"
+          elif [ "$BUILD_RESULT" = "cancelled" ]; then
+            BUILD_STATUS="⚠️ Cancelled"
+          elif [ "$BUILD_RESULT" = "skipped" ]; then
+            BUILD_STATUS="⏭️ Skipped"
+          else
+            BUILD_STATUS="❓ Unknown"
+          fi
+
           echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** \`${{ needs.prepare.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
@@ -127,11 +143,15 @@ jobs:
           echo "### Build Status" >> $GITHUB_STEP_SUMMARY
           echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 🐧 Linux (AppImage) | ✅ Success |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🍎 macOS (DMG) | ✅ Success |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🪟 Windows (EXE) | ✅ Success |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🐧 Linux (AppImage) | $BUILD_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🍎 macOS (DMG) | $BUILD_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🪟 Windows (EXE) | $BUILD_STATUS |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "- focus-\`${{ needs.prepare.outputs.version }}\`.AppImage" >> $GITHUB_STEP_SUMMARY
-          echo "- focus-\`${{ needs.prepare.outputs.version }}\`.dmg" >> $GITHUB_STEP_SUMMARY
-          echo "- focus-\`${{ needs.prepare.outputs.version }}\`.exe" >> $GITHUB_STEP_SUMMARY
+          if [ "$BUILD_RESULT" = "success" ]; then
+            echo "- focus-\`${{ needs.prepare.outputs.version }}\`.AppImage" >> $GITHUB_STEP_SUMMARY
+            echo "- focus-\`${{ needs.prepare.outputs.version }}\`.dmg" >> $GITHUB_STEP_SUMMARY
+            echo "- focus-\`${{ needs.prepare.outputs.version }}\`.exe" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "_No artifacts available due to build $BUILD_RESULT_" >> $GITHUB_STEP_SUMMARY
+          fi
