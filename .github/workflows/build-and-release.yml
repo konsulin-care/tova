@@ -153,5 +153,5 @@ jobs:
             echo "- focus-\`${{ needs.prepare.outputs.version }}\`.dmg" >> $GITHUB_STEP_SUMMARY
             echo "- focus-\`${{ needs.prepare.outputs.version }}\`.exe" >> $GITHUB_STEP_SUMMARY
           else
-            echo "_No artifacts available due to build $BUILD_RESULT_" >> $GITHUB_STEP_SUMMARY
+            echo "_No artifacts available due to build ${BUILD_RESULT}_" >> $GITHUB_STEP_SUMMARY
           fi
