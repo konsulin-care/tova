@@ -9,6 +9,7 @@
  */
 
 import { StimulusType } from './types';
+import { normalizeToEven } from './test-config';
 
 /**
  * Fisher-Yates shuffle algorithm for randomizing arrays in-place.
@@ -27,9 +28,8 @@ export function shuffleArray<T>(array: T[]): void {
  * First half: 22.5% targets, 77.5% non-targets
  * Second half: 77.5% targets, 22.5% non-targets
  * 
- * @param totalTrials - Total number of trials (must be positive even integer)
+ * @param totalTrials - Total number of trials (must be positive integer)
  * @returns Array of stimulus types for the full sequence
- * @throws Error if totalTrials is not a positive integer or cannot be normalized to even
  */
 export function generateTrialSequence(totalTrials: number): StimulusType[] {
   // Validate totalTrials is a positive integer
@@ -37,12 +37,8 @@ export function generateTrialSequence(totalTrials: number): StimulusType[] {
     throw new Error(`totalTrials must be a positive integer, got ${totalTrials}`);
   }
   
-  // Ensure even number of trials (required for two-half ratio system)
-  const normalizedTrials = totalTrials % 2 === 0 ? totalTrials : totalTrials + 1;
-  
-  if (normalizedTrials !== totalTrials) {
-    console.warn(`generateTrialSequence: totalTrials ${totalTrials} is odd, rounded up to ${normalizedTrials} for even distribution`);
-  }
+  // Normalize to even number (required for two-half ratio system)
+  const normalizedTrials = normalizeToEven(totalTrials);
   
   const halfTrials = normalizedTrials / 2; // Now guaranteed to be integer
   

@@ -31,7 +31,9 @@ export default function Settings() {
 
   const handleSave = async () => {
     try {
-      await window.electronAPI.saveTestConfig(config);
+      // Use normalized totalTrials to ensure even number is saved
+      const configToSave = { ...config, totalTrials: normalizedTotalTrials };
+      await window.electronAPI.saveTestConfig(configToSave);
       // Refetch from database to ensure UI matches persisted state
       const updatedConfig = await window.electronAPI.getTestConfig();
       setConfig(updatedConfig);

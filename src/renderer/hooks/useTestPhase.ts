@@ -47,7 +47,9 @@ export function useTestPhase(): UseTestPhaseReturn {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
       return () => clearTimeout(timer);
-    } else {
+    } else if (countdown === 0) {
+      // Only start when countdown transitions from 1 to 0
+      // The else if guard prevents multiple calls if effect re-runs before state update
       startTestSequence().catch((error) => {
         console.error('[useTestPhase] Failed to start test sequence:', error);
         setPhase('error');

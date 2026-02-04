@@ -9,6 +9,7 @@
 import { TestConfig, StimulusType, TestEvent, TestEventType } from './types';
 import { getHighPrecisionTime } from './timing';
 import { ResponseTracker } from './response-tracker';
+import { normalizeToEven } from './test-config';
 
 export interface TestCompleteData {
   events: TestEvent[];
@@ -55,11 +56,13 @@ export class TrialScheduler {
   start(sequence: StimulusType[], startTimeNs: bigint): void {
     if (this.testRunning) return;
     
-    // Guard: Validate sequence length matches config.totalTrials
-    if (sequence.length !== this.config.totalTrials) {
+    // Normalize config.totalTrials to ensure it matches sequence length
+    const expectedTrials = normalizeToEven(this.config.totalTrials);
+    
+    // Guard: Validate sequence length matches expected totalTrials
+    if (sequence.length !== expectedTrials) {
       throw new Error(
-        `Sequence length (${sequence.length}) does not match config.totalTrials (${this.config.totalTrials}). ` +
-        'Clamping or silently adding trials would skew attention metrics.'
+        `Sequence length (${sequence.length}) does not match expected trials (${expectedTrials}). `
       );
     }
     
