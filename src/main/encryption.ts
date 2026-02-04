@@ -164,10 +164,12 @@ export function migrateToEncrypted(db: Database.Database, newKey: string): void 
       encryptedDb.exec(schema.sql);
       
       // Get column info to identify generated/virtual columns
-      // Generated columns have a non-null 'dflt_value' in PRAGMA table_info
-      const columnInfo = backupDb.prepare(`PRAGMA table_info(${table.name})`).all() as Array<{name: string, dflt_value: unknown}>;
+      // PRAGMA table_xinfo returns hidden column: 0=normal, 1=generated, 2=hidden
+      const columnInfo = backupDb
+        .prepare(`PRAGMA table_xinfo(${table.name})`)
+        .all() as Array<{name: string, hidden: number}>;
       const writableColumns = columnInfo
-        .filter(col => col.dflt_value === null)  // Only include columns without defaults (excludes generated columns)
+        .filter(col => col.hidden === 0)  // Only include non-hidden columns (excludes generated/virtual columns)
         .map(col => col.name);
       
       if (writableColumns.length === 0) {
