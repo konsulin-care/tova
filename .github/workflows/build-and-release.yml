@@ -1,0 +1,387 @@
+name: Build and Release Electron App
+
+# Workflow triggers on merged versioned pull requests to master
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*.*.*'
+
+# Concurrency settings to prevent concurrent builds
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Permissions for the workflow
+permissions:
+  contents: read
+  attestations: write
+  id-token: write
+
+# Job definitions using matrix strategy for parallel builds
+jobs:
+  # Validate build environment and extract version
+  prepare:
+    name: Prepare Build
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_release: ${{ steps.version.outputs.is_release }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Extract version from git tag (remove 'v' prefix if present)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          
+          # Check if this is a release (tag starts with v)
+          if [[ $GITHUB_REF == refs/tags/v* ]]; then
+            echo "is_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_release=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Verify version format
+        run: |
+          if ! [[ ${{ steps.version.outputs.version }} =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Version must be in format X.Y.Z (semantic versioning)"
+            exit 1
+          fi
+          echo "Build version: ${{ steps.version.outputs.version }}"
+      
+      - name: Display build information
+        run: |
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "Is Release: ${{ steps.version.outputs.is_release }}"
+          echo "GitHub Ref: ${{ github.ref }}"
+          echo "Event: ${{ github.event_name }}"
+
+  # Build for Linux (AppImage)
+  build-linux:
+    name: Build Linux (AppImage)
+    needs: prepare
+    runs-on: ubuntu-latest
+    container: ubuntu:latest
+    outputs:
+      artifact_name: ${{ steps.naming.outputs.artifact_name }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            libnss3 \
+            libatk1.0-0 \
+            libatk-bridge2.0-0 \
+            libcups2 \
+            libdrm2 \
+            libgtk-3-0 \
+            libgbm1 \
+            libasound2 \
+            libxshmfence1 \
+            wget \
+            ca-certificates \
+            fonts-liberation \
+            libappindicator3-1 \
+            xdg-utils
+      
+      - name: Install npm dependencies
+        run: npm ci
+      
+      - name: Rebuild native modules for Electron
+        run: npm run electron-rebuild
+      
+      - name: Build TypeScript
+        run: npm run build:main
+      
+      - name: Build Renderer
+        run: npm run build:renderer
+      
+      - name: Set artifact name
+        id: naming
+        run: |
+          ARTIFACT_NAME="focus-v${{ needs.prepare.outputs.version }}-linux"
+          echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+      
+      - name: Build AppImage
+        run: |
+          npx electron-builder --linux AppImage \
+            --config.from=package.json \
+            --config.version=${{ needs.prepare.outputs.version }} \
+            --config.publish=null
+        env:
+          DEBUG: electron-builder
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      
+      - name: Generate SHA256 checksum
+        run: |
+          cd release
+          sha256sum focus-v${{ needs.prepare.outputs.version }}-linux.AppImage > focus-v${{ needs.prepare.outputs.version }}-linux.AppImage.sha256sum
+          cat focus-v${{ needs.prepare.outputs.version }}-linux.AppImage.sha256sum
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: focus-linux-appimage
+          path: release/
+          retention-days: 7
+          compression-level: 9
+
+  # Build for macOS (DMG)
+  build-macos:
+    name: Build macOS (DMG)
+    needs: prepare
+    runs-on: macos-latest
+    outputs:
+      artifact_name: ${{ steps.naming.outputs.artifact_name }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install npm dependencies
+        run: npm ci
+      
+      - name: Rebuild native modules for Electron
+        run: npm run electron-rebuild
+      
+      - name: Build TypeScript
+        run: npm run build:main
+      
+      - name: Build Renderer
+        run: npm run build:renderer
+      
+      - name: Set artifact name
+        id: naming
+        run: |
+          ARTIFACT_NAME="focus-v${{ needs.prepare.outputs.version }}-macOS"
+          echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
+      
+      - name: Build DMG
+        run: |
+          npx electron-builder --mac dmg \
+            --config.from=package.json \
+            --config.version=${{ needs.prepare.outputs.version }} \
+            --config.publish=null
+        env:
+          DEBUG: electron-builder
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          # Code signing configuration (for production, set these secrets)
+          # CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
+          # CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+      
+      - name: Generate SHA256 checksum
+        run: |
+          cd release
+          sha256sum focus-v${{ needs.prepare.outputs.version }}-macOS.dmg > focus-v${{ needs.prepare.outputs.version }}-macOS.dmg.sha256sum
+          cat focus-v${{ needs.prepare.outputs.version }}-macOS.dmg.sha256sum
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: focus-macos-dmg
+          path: release/
+          retention-days: 7
+          compression-level: 9
+
+  # Build for Windows (EXE portable)
+  build-windows:
+    name: Build Windows (EXE)
+    needs: prepare
+    runs-on: windows-latest
+    outputs:
+      artifact_name: ${{ steps.naming.outputs.artifact_name }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install Wine for Windows builds
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          command: |
+            # Install Wine dependencies
+            apt-get update
+            apt-get install -y wine64 wine32 winbind cabextract wget
+            # Enable 32-bit support
+            dpkg --add-architecture i386
+      
+      - name: Install npm dependencies
+        run: npm ci
+      
+      - name: Rebuild native modules for Electron
+        run: npm run electron-rebuild
+      
+      - name: Build TypeScript
+        run: npm run build:main
+      
+      - name: Build Renderer
+        run: npm run build:renderer
+      
+      - name: Set artifact name
+        id: naming
+        run: |
+          $ARTIFACT_NAME = "focus-v${{ needs.prepare.outputs.version }}-windows.exe"
+          echo "artifact_name=$ARTIFACT_NAME" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      
+      - name: Build Windows EXE
+        run: |
+          npx electron-builder --win portable \
+            --config.from=package.json \
+            --config.version=${{ needs.prepare.outputs.version }} \
+            --config.publish=null
+        env:
+          DEBUG: electron-builder
+          # Code signing configuration (for production, set these secrets)
+          # CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE }}
+          # CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          # CSC_FILES_LINK: ${{ secrets.WINDOWS_CERTIFICATE }}
+      
+      - name: Generate SHA256 checksum
+        run: |
+          cd release
+          CertUtil -hashfile focus-v${{ needs.prepare.outputs.version }}-windows.exe SHA256 | Select-Object -Skip 1 > focus-v${{ needs.prepare.outputs.version }}-windows.exe.sha256sum
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: focus-windows-exe
+          path: release/
+          retention-days: 7
+
+  # Combine and create GitHub release
+  create-release:
+    name: Create GitHub Release
+    needs: [prepare, build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    if: needs.prepare.outputs.is_release == 'true'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+      
+      - name: Prepare release assets
+        run: |
+          cd release
+          # Flatten artifacts from subdirectories
+          for dir in focus-*-*; do
+            if [ -d "$dir" ]; then
+              mv "$dir"/* .
+              rmdir "$dir"
+            fi
+          done
+          ls -la
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: F.O.C.U.S. Attention v${{ needs.prepare.outputs.version }}
+          tag_name: v${{ needs.prepare.outputs.version }}
+          draft: false
+          prerelease: false
+          files: release/*
+          body: |
+            ## Release Notes
+            
+            ### Version ${{ needs.prepare.outputs.version }}
+            
+            This release includes pre-built binaries for:
+            - Linux (AppImage)
+            - macOS (DMG)
+            - Windows (Portable EXE)
+            
+            ### Checksums
+            
+            Verify download integrity using SHA256 checksums:
+            ```text
+            $(cat release/*.sha256sum 2>/dev/null || echo "Checksums available in individual artifact downloads")
+            ```
+            
+            ### Installation Instructions
+            
+            **Linux:** Download the AppImage, make it executable, and run.
+            ```bash
+            chmod +x focus-v${{ needs.prepare.outputs.version }}-linux.AppImage
+            ./focus-v${{ needs.prepare.outputs.version }}-linux.AppImage
+            ```
+            
+            **macOS:** Open the DMG file and drag the application to your Applications folder.
+            
+            **Windows:** Run the portable EXE file directly or move to your preferred location.
+            
+            ### Security Note
+            
+            These builds are not code-signed. On Windows and macOS, you may see security warnings. For production use, configure code signing certificates.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Summary job (always runs)
+  summary:
+    name: Build Summary
+    needs: [prepare, build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Version: ${{ needs.prepare.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "Release: ${{ needs.prepare.outputs.is_release }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Status" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Linux (AppImage) | ${{ needs.build-linux.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| macOS (DMG) | ${{ needs.build-macos.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Windows (EXE) | ${{ needs.build-windows.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- focus-v${{ needs.prepare.outputs.version }}-linux.AppImage" >> $GITHUB_STEP_SUMMARY
+          echo "- focus-v${{ needs.prepare.outputs.version }}-macOS.dmg" >> $GITHUB_STEP_SUMMARY
+          echo "- focus-v${{ needs.prepare.outputs.version }}-windows.exe" >> $GITHUB_STEP_SUMMARY
