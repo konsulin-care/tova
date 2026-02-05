@@ -68,15 +68,15 @@ export default function Sidebar() {
   return (
     <aside
       className={`
-        bg-gray-900 text-white transition-all duration-300
-        flex flex-col h-screen
+        bg-sidebar-bg backdrop-blur-sm text-sidebar-fg transition-all duration-300
+        flex flex-col h-screen border-r border-sidebar-border
         ${isSidebarCollapsed ? 'w-16' : 'w-64'}
       `}
     >
       {/* Logo */}
-      <div className="p-4 border-b border-gray-700 flex items-center justify-center">
+      <div className="p-4 border-b border-sidebar-border flex items-center justify-center">
         {isSidebarCollapsed ? (
-          <span className="text-2xl font-bold text-blue-400">F</span>
+          <span className="text-2xl font-bold text-primary">F</span>
         ) : (
           <span className="text-xl font-bold">F.O.C.U.S. Assessment</span>
         )}
@@ -99,7 +99,7 @@ export default function Sidebar() {
       {/* Collapse Toggle */}
       <button
         onClick={toggleSidebar}
-        className="p-4 hover:bg-gray-700 border-t border-gray-700 transition-colors duration-200 flex items-center justify-center"
+        className="p-4 hover:bg-sidebar-hover border-t border-sidebar-border transition-colors duration-200 flex items-center justify-center"
         title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {isSidebarCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
