@@ -73,17 +73,29 @@ export default function Sidebar() {
         ${isSidebarCollapsed ? 'w-16' : 'w-64'}
       `}
     >
-      {/* Logo */}
-      <div className="p-4 border-b border-sidebar-border flex items-center justify-center">
+      {/* Logo and Collapse Toggle */}
+      <div className={`
+        p-4 border-b border-sidebar-border flex items-center justify-center relative
+        ${isSidebarCollapsed ? 'py-4' : ''}
+      `}>
         {isSidebarCollapsed ? (
           <span className="text-2xl font-bold text-primary">F</span>
         ) : (
           <span className="text-xl font-bold">F.O.C.U.S. Assessment</span>
         )}
+        
+        {/* Collapse Toggle - Round, hanging on edge, primary color */}
+        <button
+          onClick={toggleSidebar}
+          className="absolute right-0 translate-x-1/2 w-8 h-8 bg-primary rounded-full text-white flex items-center justify-center shadow-md hover:opacity-90 transition-opacity"
+          title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isSidebarCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4">
+      <nav className="flex-1 py-4 px-2 items-stretch">
         {navItems.map((item) => (
           <SidebarButton
             key={item.page}
@@ -95,15 +107,6 @@ export default function Sidebar() {
           />
         ))}
       </nav>
-
-      {/* Collapse Toggle */}
-      <button
-        onClick={toggleSidebar}
-        className="p-4 hover:bg-sidebar-hover border-t border-sidebar-border transition-colors duration-200 flex items-center justify-center"
-        title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      >
-        {isSidebarCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-      </button>
     </aside>
   );
 }
