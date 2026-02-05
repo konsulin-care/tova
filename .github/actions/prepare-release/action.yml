@@ -44,7 +44,10 @@ runs:
                       -e "s|{{CHECKSUMS}}|$CHECKSUMS|g" \
                       "${{ github.workspace }}/.github/release-notes.template.md")
         
-        echo "content=$CONTENT" >> $GITHUB_OUTPUT
+        # Write multiline output to GITHUB_OUTPUT
+        echo "content<<EOF" >> $GITHUB_OUTPUT
+        echo "$CONTENT" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
