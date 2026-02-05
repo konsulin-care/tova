@@ -7,6 +7,13 @@ interface StimulusContainerProps {
   stimulusType: StimulusType | null;
 }
 
+/**
+ * Render a centered stimulus area with a persistent fixation point and an overlaying stimulus whose visibility and content are controlled by props.
+ *
+ * @param isVisible - If `true`, shows the large white stimulus overlay; if `false`, the overlay is hidden (fixation point remains visible).
+ * @param stimulusType - Determines the overlay's content: `'target'` renders a TargetStimulus, `'non-target'` renders a NonTargetStimulus, or `null` renders no inner stimulus.
+ * @returns The rendered stimulus container element.
+ */
 export function StimulusContainer({ isVisible, stimulusType }: StimulusContainerProps) {
   return (
     <div className="relative flex flex-col items-center justify-center">
