@@ -4,12 +4,13 @@ import { useNavigation } from '@/renderer/store';
 export default function Home() {
   const { t } = useTranslation('translation', { keyPrefix: 'home' });
   const { t: buttonT } = useTranslation('translation', { keyPrefix: 'button' });
+  const { t: appT } = useTranslation('translation'); // For root-level keys like app.title
   const { setPage } = useNavigation();
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-4 text-gray-900">
-        {t('app.title')}
+        {appT('app.title')}
       </h1>
       <p className="text-gray-600 mb-6 text-lg">
         {t('description')}

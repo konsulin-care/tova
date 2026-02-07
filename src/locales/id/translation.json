@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "Penilaian F.O.C.U.S.",
-    "tagline": "Mengikuti Petunjuk Berkelanjutan Di Bawah Struktur"
+    "tagline": "Following Ongoing Cues Under Structure"
   },
   "home": {
     "description": "F.O.C.U.S. adalah tugas perhatian visual berbasis komputer yang dirancang untuk memeriksa bagaimana pengguna melacak dan menanggapi petunjuk visual berkelanjutan yang disajikan dengan kecepatan tetap.",
@@ -12,7 +12,7 @@
       "omissionErrors": "Kesalahan Kelalaian"
     },
     "duration": {
-      "title": "Durasi Tes",
+      "title": "Durasi Penilaian",
       "text": "Penilaian ini membutuhkan waktu sekitar {{duration}} menit untuk diselesaikan."
     },
     "instructions": {
@@ -22,20 +22,33 @@
   "test": {
     "buffer": {
       "title": "Bersiaplah",
-      "description": "Tes akan segera dimulai",
+      "description": "Penilaian akan segera dimulai",
       "remaining": "Dimulai dalam {{seconds}} detik..."
     },
     "countdown": {
       "title": "Bersiaplah",
-      "description": "Tes dimulai sekarang"
+      "description": "Penilaian dimulai sekarang"
     },
     "running": {
       "target": "Tekan sekarang!",
       "progress": "Percobaan {{current}} dari {{total}}"
     },
     "instructions": "Tekan tombol saat melihat KOTAK TARGET",
-    "exitTest": "Keluar Tes",
-    "complete": "Tes Selesai"
+    "exitPenilaiant": "Keluar Penilaian",
+    "complete": "Penilaian Selesai",
+    "page": {
+      "title": "Penilaian F.O.C.U.S.",
+      "description": "F.O.C.U.S. (Following Ongoing Cues Under Structure) adalah tugas perhatian visual yang mengukur seberapa konsisten pengguna menanggapi petunjuk terstruktur dan seberapa efektif mereka menahan respons saat diperlukan.",
+      "duration": "Durasi: sekitar 21,6 menit",
+      "respondTarget": "Klik kiri atau tekan spasi saat stimulus target muncul",
+      "noRespondNonTarget": "Jangan merespons stimulus non-target",
+      "precision": "Waktu presisi tinggi menangkap akurasi respons Anda",
+      "beforeBegin": "Sebelum Anda Memulai",
+      "quietEnvironment": "Temukan lingkungan yang tenang dan nyaman",
+      "seeClearly": "Pastikan Anda dapat melihat layar dengan jelas",
+      "useEither": "Anda dapat menggunakan klik mouse atau spasi",
+      "cannotPause": "Penilaian tidak dapat dijeda setelah dimulai"
+    }
   },
   "results": {
     "title": "Hasil Anda",
@@ -67,9 +80,9 @@
       "variability": "Z-Score Variabilitas"
     },
     "validity": {
-      "title": "Validitas Tes",
-      "valid": "Tes Valid - Hasil dapat dipercaya",
-      "invalid": "Tes Tidak Valid - Terlalu banyak respons antisipatori"
+      "title": "Validitas Penilaian",
+      "valid": "Penilaian Valid - Hasil dapat dipercaya",
+      "invalid": "Penilaian Tidak Valid - Terlalu banyak respons antisipatori"
     },
     "trialOutcomes": {
       "title": "Hasil Percobaan",
@@ -89,7 +102,7 @@
       "email": "Alamat Email"
     },
     "consent": {
-      "text": "Saya menyetujui untuk menerima hasil tes di alamat email ini. Email saya akan diproses dengan aman dan dihapus setelah hasil dikirim. Data disimpan selama 7 hari kecuali berhasil dikirimkan.",
+      "text": "Saya menyetujui untuk menerima hasil penilaian di alamat email ini. Email saya akan diproses dengan aman dan dihapus setelah hasil dikirim. Data disimpan selama 7 hari kecuali berhasil dikirimkan.",
       "privacyLink": "Kebijakan Privasi"
     },
     "gdpr": "Data Anda dilindungi oleh peraturan GDPR.",
@@ -107,14 +120,36 @@
     },
     "timing": {
       "title": "Pengaturan Waktu",
+      "configDescription": "Konfigurasi parameter tes untuk penilaian F.O.C.U.S.",
       "stimulusDuration": "Durasi Stimulus (md)",
-      "interstimulusInterval": "Interval Inter-Stimulus (md)"
+      "interstimulusInterval": "Interval Inter-Stimulus (md)",
+      "totalTrials": "Total Percobaan",
+      "totalTrialsDescription": "Harus berupa angka genap untuk desain tes dua bagian yang seimbang",
+      "oddValuesRounded": "Nilai ganjil dibulatkan menjadi {{value}}",
+      "bufferTime": "Waktu Buffer (md)"
+    },
+    "dataManagement": {
+      "title": "Manajemen Data",
+      "description": "Kelola data tes lokal dan pengaturan unggahan.",
+      "pendingUploads": "Unggahan Tertunda: {{count}}",
+      "clearCache": "Hapus Cache Lokal"
     }
   },
   "about": {
     "title": "Tentang F.O.C.U.S.",
     "description": "F.O.C.U.S. (Following Ongoing Cues Under Structure) adalah penilaian perhatian visual yang dirancang untuk pengaturan klinis dan penelitian.",
     "version": "Versi",
+    "appInfo": "Informasi Aplikasi",
+    "build": "Build",
+    "platform": "Platform",
+    "focusTitle": "Tentang Penilaian F.O.C.U.S.",
+    "focusDescription": "Following Ongoing Cues Under Structure (F.O.C.U.S.) adalah tes kinerja berkelanjutan visual terkomputerisasi yang digunakan untuk menilai perhatian dan kontrol inhibisi. Ini diadaptasi dari manual T.O.V.A., yang banyak digunakan dalam diagnosis dan pemantauan gangguan perhatian seperti ADHD. F.O.C.U.S. dimaksudkan sebagai alat penelitian untuk menstandardisasi penilaian perhatian menggunakan platform sumber terbuka.",
+    "focusMetrics": "Tes ini mengukur empat variabel utama: Waktu Respons, Variabilitas Waktu Respons, Kesalahan Komisi (alarm palsu), dan Kesalahan Kelalaian (target terlewat).",
+    "technicalFeatures": "Fitur Teknis",
+    "supportContact": "Dukungan & Kontak",
+    "supportText": "Untuk dukungan teknis atau pertanyaan tentang Penilaian F.O.C.U.S., silakan hubungi penyedia layanan kesehatan atau administrator sistem Anda.",
+    "emailLabel": "Email:",
+    "backToHome": "Kembali ke Beranda",
     "features": {
       "precision": "Waktu presisi tinggi (±1md)",
       "metrics": "Empat metrik perhatian utama",
@@ -126,6 +161,17 @@
     "language": "Bahasa"
   },
   "button": {
-    "start": "Mulai Tes"
+    "start": "Mulai Penilaian",
+    "next": "Berikutnya →",
+    "saveSettings": "Simpan Pengaturan",
+    "resetDefaults": "Kembalikan ke Bawaan",
+    "backToHome": "Kembali ke Beranda"
+  },
+  "status": {
+    "loadFailed": "Gagal memuat pengaturan",
+    "saveSuccess": "Pengaturan berhasil disimpan",
+    "saveFailed": "Gagal menyimpan pengaturan",
+    "resetSuccess": "Pengaturan dikembalikan ke bawaan",
+    "resetFailed": "Gagal mengembalikan pengaturan"
   }
 }

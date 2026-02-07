@@ -12,7 +12,7 @@
       "omissionErrors": "Omission Errors"
     },
     "duration": {
-      "title": "Test Duration",
+      "title": "Assessment Duration",
       "text": "The assessment takes approximately {{duration}} minutes to complete."
     },
     "instructions": {
@@ -22,20 +22,33 @@
   "test": {
     "buffer": {
       "title": "Get Ready",
-      "description": "The test will begin shortly",
+      "description": "The assessment will begin shortly",
       "remaining": "Starting in {{seconds}} seconds..."
     },
     "countdown": {
       "title": "Get Ready",
-      "description": "Test starting now"
+      "description": "Assessment starting now"
     },
     "running": {
       "target": "Press now!",
       "progress": "Trial {{current}} of {{total}}"
     },
     "instructions": "Press the button when you see the TARGET square",
-    "exitTest": "Exit Test",
-    "complete": "Test Complete"
+    "exitAssessment": "Exit Assessment",
+    "complete": "Assessment Complete",
+    "page": {
+      "title": "F.O.C.U.S. Assessment",
+      "description": "F.O.C.U.S. (Following Ongoing Cues Under Structure) is a visual attention task that measures how consistently a user responds to structured cues and how effectively they withhold responses when required.",
+      "duration": "Duration: approximately 21.6 minutes",
+      "respondTarget": "Left-click or press the spacebar when the target stimulus appears",
+      "noRespondNonTarget": "Do not respond to non-target stimuli",
+      "precision": "High-precision timing captures your response accuracy",
+      "beforeBegin": "Before You Begin",
+      "quietEnvironment": "Find a quiet, comfortable environment",
+      "seeClearly": "Ensure you can see the screen clearly",
+      "useEither": "You may use either mouse click or spacebar",
+      "cannotPause": "The assessment cannot be paused once started"
+    }
   },
   "results": {
     "title": "Your Results",
@@ -67,9 +80,9 @@
       "variability": "Variability Z-Score"
     },
     "validity": {
-      "title": "Test Validity",
-      "valid": "Valid Test - Results are reliable",
-      "invalid": "Invalid Test - Too many anticipatory responses"
+      "title": "Assessment Validity",
+      "valid": "Valid Assessment - Results are reliable",
+      "invalid": "Invalid Assessment - Too many anticipatory responses"
     },
     "trialOutcomes": {
       "title": "Trial Outcomes",
@@ -89,7 +102,7 @@
       "email": "Email Address"
     },
     "consent": {
-      "text": "I consent to receive my test results at this email address. My email will be securely processed and deleted after results are sent. Data is retained for 7 days unless successfully transmitted.",
+      "text": "I consent to receive my assessment results at this email address. My email will be securely processed and deleted after results are sent. Data is retained for 7 days unless successfully transmitted.",
       "privacyLink": "Privacy Policy"
     },
     "gdpr": "Your data is protected under GDPR regulations.",
@@ -107,14 +120,36 @@
     },
     "timing": {
       "title": "Timing Settings",
+      "configDescription": "Configure test parameters for the F.O.C.U.S. assessment.",
       "stimulusDuration": "Stimulus Duration (ms)",
-      "interstimulusInterval": "Inter-Stimulus Interval (ms)"
+      "interstimulusInterval": "Inter-Stimulus Interval (ms)",
+      "totalTrials": "Total Trials",
+      "totalTrialsDescription": "Must be an even number for balanced two-half test design",
+      "oddValuesRounded": "Odd values are rounded up to {{value}}",
+      "bufferTime": "Buffer Time (ms)"
+    },
+    "dataManagement": {
+      "title": "Data Management",
+      "description": "Manage local test data and upload settings.",
+      "pendingUploads": "Pending Uploads: {{count}}",
+      "clearCache": "Clear Local Cache"
     }
   },
   "about": {
     "title": "About F.O.C.U.S.",
     "description": "F.O.C.U.S. (Following Ongoing Cues Under Structure) is a visual attention assessment designed for clinical and research settings.",
     "version": "Version",
+    "appInfo": "Application Information",
+    "build": "Build",
+    "platform": "Platform",
+    "focusTitle": "About the F.O.C.U.S. Assessment",
+    "focusDescription": "The Following Ongoing Cues Under Structure (F.O.C.U.S.) is a computerized visual continuous performance test used to assess attention and inhibitory control. It is adapted from T.O.V.A. manual, which is widely used in the diagnosis and monitoring of attention disorders such as ADHD. F.O.C.U.S. is intended as a research tool to standardize the assessment of attention using an open-source platform.",
+    "focusMetrics": "The test measures four key variables: Response Time, Response Time Variability, Commission Errors (false alarms), and Omission Errors (missed targets).",
+    "technicalFeatures": "Technical Features",
+    "supportContact": "Support & Contact",
+    "supportText": "For technical support or questions about the F.O.C.U.S. Assessment, please contact your healthcare provider or system administrator.",
+    "emailLabel": "Email:",
+    "backToHome": "Back to Home",
     "features": {
       "precision": "High-precision timing (±1ms)",
       "metrics": "Four key attention metrics",
@@ -126,6 +161,17 @@
     "language": "Language"
   },
   "button": {
-    "start": "Start Test"
+    "start": "Start Assessment",
+    "next": "Next →",
+    "saveSettings": "Save Settings",
+    "resetDefaults": "Reset to Defaults",
+    "backToHome": "Back to Home"
+  },
+  "status": {
+    "loadFailed": "Failed to load settings",
+    "saveSuccess": "Settings saved successfully",
+    "saveFailed": "Failed to save settings",
+    "resetSuccess": "Settings reset to defaults",
+    "resetFailed": "Failed to reset settings"
   }
 }
