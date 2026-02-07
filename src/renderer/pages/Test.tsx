@@ -10,7 +10,6 @@ export default function Test() {
   const { t: buttonT } = useTranslation('translation', { keyPrefix: 'button' });
   const { startTest } = useNavigation();
   const [testDuration, setTestDuration] = useState<number>(21.6); // Default fallback
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchTestConfig = async () => {
@@ -21,8 +20,6 @@ export default function Test() {
       } catch (error) {
         console.error('Failed to fetch test config:', error);
         // Keep default 21.6 value on error
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -40,7 +37,7 @@ export default function Test() {
           {t('description')}
         </p>
         <ul className="list-disc list-inside mt-4 text-yellow-800 space-y-2">
-          <li>{isLoading ? t('duration', { duration: testDuration.toString() }) : t('duration', { duration: testDuration.toString() })}</li>
+          <li>{t('duration', { duration: testDuration.toString() })}</li>
           <li>{t('respondTarget')}</li>
           <li>{t('noRespondNonTarget')}</li>
           <li>{t('precision')}</li>
