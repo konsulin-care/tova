@@ -1,12 +1,14 @@
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '../store';
 
 export default function About() {
+  const { t } = useTranslation();
   const { setPage } = useNavigation();
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-gray-900">
-        About F.O.C.U.S. Assessment
+        {t('about.title')}
       </h1>
 
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6">
@@ -14,7 +16,7 @@ export default function About() {
           Application Information
         </h2>
         <div className="space-y-2 text-gray-600">
-          <p><strong>Version:</strong> 1.0.0</p>
+          <p><strong>{t('about.version')}:</strong> 1.0.0</p>
           <p><strong>Build:</strong> Electron 40.1.0 / React 18.2</p>
           <p><strong>Platform:</strong> Desktop Application</p>
         </div>
@@ -44,11 +46,10 @@ export default function About() {
           Technical Features
         </h2>
         <ul className="list-disc list-inside text-gray-600 space-y-2">
-          <li>High-precision timing (±1ms accuracy)</li>
-          <li>Local test execution (no network dependency during test)</li>
-          <li>Secure local data storage with automatic upload</li>
-          <li>Cross-platform support (Windows, macOS, Linux)</li>
-          <li>FHIR-compliant result storage</li>
+          <li>{t('about.features.precision')}</li>
+          <li>{t('about.features.metrics')}</li>
+          <li>{t('about.features.normative')}</li>
+          <li>{t('about.features.privacy')}</li>
         </ul>
       </div>
 

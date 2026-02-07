@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigation } from '../store';
 import type { TestConfig } from '../types/electronAPI';
 
 export default function Settings() {
+  const { t } = useTranslation();
   const { setPage } = useNavigation();
   const [config, setConfig] = useState<TestConfig>({
     stimulusDurationMs: 100,
@@ -70,14 +72,14 @@ export default function Settings() {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-6 text-gray-900">
-        Settings
+        {t('settings.title')}
       </h1>
 
       <div className="space-y-6">
         {/* Test Configuration */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-3 text-gray-800">
-            Test Configuration
+            {t('settings.timing.title')}
           </h2>
           <p className="text-gray-600 mb-4">
             Configure test parameters for the F.O.C.U.S. assessment.
@@ -86,7 +88,7 @@ export default function Settings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stimulus Duration (ms)
+                {t('settings.timing.stimulusDuration')}
               </label>
               <input
                 type="number"
@@ -100,7 +102,7 @@ export default function Settings() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Interstimulus Interval (ms)
+                {t('settings.timing.interstimulusInterval')}
               </label>
               <input
                 type="number"

@@ -100,7 +100,7 @@ function TestScreen() {
       {phase === 'countdown' && <CountdownDisplay countdown={countdown} />}
 
       {/* Buffer period display */}
-      {phase === 'buffer' && <BufferDisplay />}
+      {phase === 'buffer' && <BufferDisplay countdown={countdown} />}
 
       {/* Trial progress */}
       {phase === 'running' && (
