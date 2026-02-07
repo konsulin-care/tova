@@ -11,7 +11,7 @@ interface PackageJson {
   dependencies?: Record<string, string>;
 }
 
-declare module '*.json' {
+declare module '*/package.json' {
   const content: PackageJson;
   export default content;
 }

@@ -18,8 +18,8 @@ export default function About() {
         </h2>
         <div className="space-y-2 text-gray-600">
           <p><strong>{t('about.version')}:</strong> {packageInfo.version}</p>
-          <p><strong>{t('about.build')}:</strong> Electron {packageInfo.devDependencies?.electron?.replace('^', '') || '40.1.0'} / React {packageInfo.dependencies?.react?.replace('^', '') || '19.2.4'}</p>
-          <p><strong>{t('about.platform')}:</strong> Desktop Application</p>
+          <p><strong>{t('about.build')}:</strong> {t('about.buildDetails', { electron: packageInfo.devDependencies?.electron?.replace('^', '') || '40.1.0', react: packageInfo.dependencies?.react?.replace('^', '') || '19.2.4' })}</p>
+          <p><strong>{t('about.platform')}:</strong> {t('about.platformDesktop')}</p>
         </div>
       </div>
 
